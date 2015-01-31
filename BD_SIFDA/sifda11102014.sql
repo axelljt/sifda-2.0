@@ -163,7 +163,7 @@ CREATE TABLE ctl_dependencia_establecimiento (
     id_establecimiento integer,
     id_dependencia integer,
     id_dependencia_padre integer,
-    abreviatura character(10),
+    abreviatura character varying(255),
     habilitado boolean NOT NULL
 );
 
@@ -328,24 +328,26 @@ ALTER TABLE public.fos_user_group_id_seq OWNER TO sifda;
 
 CREATE TABLE fos_user_user (
     id integer NOT NULL,
+    id_dependencia_establecimiento integer,
+    id_empleado integer,
     username character varying(255) NOT NULL,
-    username_canonical character varying(255) DEFAULT NULL::character varying,
+    username_canonical character varying(255) DEFAULT NULL::character varying NOT NULL,
     email character varying(255) NOT NULL,
-    email_canonical character varying(255) DEFAULT NULL::character varying,
+    email_canonical character varying(255) DEFAULT NULL::character varying NOT NULL,
     enabled boolean NOT NULL,
-    salt character varying(255) DEFAULT NULL::character varying,
+    salt character varying(255) DEFAULT NULL::character varying NOT NULL,
     password character varying(255) NOT NULL,
     last_login timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
-    locked boolean,
-    expired boolean,
+    locked boolean NOT NULL,
+    expired boolean NOT NULL,
     expires_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
     confirmation_token character varying(255) DEFAULT NULL::character varying,
     password_requested_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
-    roles text,
-    credentials_expired boolean,
+    roles text NOT NULL,
+    credentials_expired boolean NOT NULL,
     credentials_expire_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
-    created_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
-    updated_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
+    created_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone NOT NULL,
+    updated_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone NOT NULL,
     date_of_birth timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
     firstname character varying(64),
     lastname character varying(64),
@@ -455,7 +457,8 @@ CREATE TABLE sidpla_linea_estrategica (
     descripcion text NOT NULL,
     codigo character varying(15) NOT NULL,
     activo boolean NOT NULL,
-    anio integer NOT NULL
+    anio integer NOT NULL,
+    recurrente boolean NOT NULL
 );
 
 
@@ -606,8 +609,8 @@ CREATE TABLE sifda_informe_orden_trabajo (
     id_dependencia_establecimiento integer,
     id_etapa integer,
     detalle text NOT NULL,
-    fecha_realizacion date NOT NULL,
-    fecha_registro date NOT NULL,
+    fecha_realizacion timestamp without time zone NOT NULL,
+    fecha_registro timestamp(0) without time zone NOT NULL,
     terminado boolean NOT NULL
 );
 
@@ -640,9 +643,9 @@ CREATE TABLE sifda_orden_trabajo (
     id_dependencia_establecimiento integer,
     id_prioridad integer,
     descripcion text NOT NULL,
-    codigo character varying(12) NOT NULL,
-    fecha_creacion date NOT NULL,
-    fecha_finalizacion date,
+    codigo character varying(15) NOT NULL,
+    fecha_creacion timestamp(0) without time zone NOT NULL,
+    fecha_finalizacion timestamp without time zone,
     observacion text
 );
 
@@ -672,7 +675,7 @@ CREATE TABLE sifda_recurso_servicio (
     id_informe_orden_trabajo integer,
     id_tipo_recurso_dependencia integer,
     cantidad integer NOT NULL,
-    costo_unitario double precision NOT NULL
+    costo_total double precision NOT NULL
 );
 
 
@@ -727,7 +730,7 @@ ALTER TABLE public.sifda_reprogramacion_servicio_id_seq OWNER TO sifda;
 CREATE TABLE sifda_retraso_actividad (
     id integer NOT NULL,
     id_orden_trabajo integer,
-    razon_retraso character varying(100) NOT NULL
+    razon_retraso text NOT NULL
 );
 
 
@@ -754,8 +757,8 @@ ALTER TABLE public.sifda_retraso_actividad_id_seq OWNER TO sifda;
 CREATE TABLE sifda_ruta (
     id integer NOT NULL,
     id_tipo_servicio integer,
-    descripcion character varying(50) NOT NULL,
-    tipo character varying(30) NOT NULL
+    descripcion text NOT NULL,
+    tipo character varying(75) NOT NULL
 );
 
 
@@ -767,10 +770,10 @@ ALTER TABLE public.sifda_ruta OWNER TO sifda;
 
 CREATE TABLE sifda_ruta_ciclo_vida (
     id integer NOT NULL,
-    id_ruta integer NOT NULL,
+    id_tipo_servicio integer,
     id_etapa integer,
-    descripcion character varying(100) NOT NULL,
-    ref1 character varying(20),
+    descripcion text NOT NULL,
+    referencia text,
     jerarquia integer NOT NULL,
     ignorar_sig boolean NOT NULL,
     peso integer NOT NULL
@@ -813,14 +816,14 @@ ALTER TABLE public.sifda_ruta_id_seq OWNER TO sifda;
 
 CREATE TABLE sifda_solicitud_servicio (
     id integer NOT NULL,
-    id_tipo_servicio integer,
-    user_id integer,
+    id_tipo_servicio integer NOT NULL,
+    user_id integer NOT NULL,
     id_dependencia_establecimiento integer,
-    id_estado integer,
+    id_estado integer NOT NULL,
     id_medio_solicita integer,
     descripcion text NOT NULL,
-    fecha_recepcion date NOT NULL,
-    fecha_requiere date
+    fecha_recepcion timestamp(0) without time zone NOT NULL,
+    fecha_requiere timestamp without time zone
 );
 
 
@@ -860,7 +863,7 @@ ALTER TABLE public.sifda_tipo_recurso OWNER TO sifda;
 
 CREATE TABLE sifda_tipo_recurso_dependencia (
     id integer NOT NULL,
-    id_tipo_recurso integer,
+    id_tipo_recurso integer NOT NULL,
     id_dependencia_establecimiento integer,
     costo_unitario double precision NOT NULL
 );
@@ -904,7 +907,9 @@ CREATE TABLE sifda_tipo_servicio (
     id integer NOT NULL,
     id_actividad integer,
     nombre character varying(75) NOT NULL,
-    descripcion text NOT NULL
+    descripcion text NOT NULL,
+    activo boolean NOT NULL,
+    id_dependencia_establecimiento integer
 );
 
 
@@ -933,9 +938,9 @@ CREATE TABLE sifda_tracking_estado (
     id_orden_trabajo integer,
     id_estado integer,
     id_etapa integer,
-    fecha_inicio date NOT NULL,
-    fecha_fin date,
-    prog_actividad character varying(25) NOT NULL,
+    fecha_inicio timestamp(0) without time zone NOT NULL,
+    fecha_fin timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
+    prog_actividad character varying(40) NOT NULL,
     observacion text NOT NULL
 );
 
@@ -955,6 +960,35 @@ CREATE SEQUENCE sifda_tracking_estado_id_seq
 
 
 ALTER TABLE public.sifda_tracking_estado_id_seq OWNER TO sifda;
+
+--
+-- Name: user; Type: TABLE; Schema: public; Owner: sifda; Tablespace: 
+--
+
+CREATE TABLE "user" (
+    id integer NOT NULL,
+    username character varying(25) NOT NULL,
+    password character varying(64) NOT NULL,
+    email character varying(60) NOT NULL,
+    is_active boolean NOT NULL
+);
+
+
+ALTER TABLE public."user" OWNER TO sifda;
+
+--
+-- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: sifda
+--
+
+CREATE SEQUENCE user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_id_seq OWNER TO sifda;
 
 --
 -- Data for Name: bitacora; Type: TABLE DATA; Schema: public; Owner: sifda
@@ -977,7 +1011,7 @@ SELECT pg_catalog.setval('bitacora_id_seq', 1, false);
 
 COPY catalogo (id, nombre, descripcion, sistema, ref1) FROM stdin;
 1	Medio	Es el medio por el cual solicita un servicio	1	medio solicita
-2	Estados	Muestra los catalogos 1	1	formas del servicio
+2	Estados Solicitud	Muestra los estados de una solicitud de servio 1	1	formas del servicio
 3	Prioridad	Muestra la prioridad de una actividad	1	prioridad actividad
 \.
 
@@ -994,10 +1028,11 @@ COPY catalogo_detalle (id, id_catalogo, descripcion, ref1, estatus) FROM stdin;
 5	1	Sistema		t
 6	1	PAO		t
 7	1	Verbal		t
-8	3	Alta		t
-9	3	Media	' '	t
-10	3	Baja		t
-11	3	Urgente		t
+8	1	Correo Electronico		t
+9	3	Alta		t
+10	3	Media	' '	t
+11	3	Baja		t
+12	3	Urgente		t
 \.
 
 
@@ -2244,7 +2279,7 @@ COPY ctl_dependencia_establecimiento (id, id_establecimiento, id_dependencia, id
 1100	645	98	\N	\N	t
 1101	645	99	\N	\N	t
 4	2	4	\N	\N	t
-1	7	4	\N	DTIC      	t
+1	7	4	\N	DTIC	t
 \.
 
 
@@ -2985,12 +3020,8 @@ SELECT pg_catalog.setval('fos_user_group_id_seq', 3, true);
 -- Data for Name: fos_user_user; Type: TABLE DATA; Schema: public; Owner: sifda
 --
 
-COPY fos_user_user (id, username, username_canonical, email, email_canonical, enabled, salt, password, last_login, locked, expired, expires_at, confirmation_token, password_requested_at, roles, credentials_expired, credentials_expire_at, created_at, updated_at, date_of_birth, firstname, lastname, website, biography, gender, locale, timezone, phone, facebook_uid, facebook_name, facebook_data, twitter_uid, twitter_name, twitter_data, gplus_uid, gplus_name, gplus_data, token, two_step_code) FROM stdin;
-3	sviana	sviana	sviana@salud.gob.sv	sviana@salud.gob.sv	t	3y72xo30llycw08kgkggg44okwkg4k4	SRsjyN0mvC2uNr8bgOreUdy3EyXQBUt4zJmeB1FjE5QMS7+j1/LWoXwlWKDjlB0cybVv8lHkyElQGzk5OUrbzA==	2014-11-22 10:19:36	f	f	\N	\N	\N	a:0:{}	f	\N	2014-10-24 14:20:27	2014-11-22 10:19:36	\N	Sonia	Viana	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
-1	anthony	anthony	anthony.huezo@gmail.com	anthony.huezo@gmail.com	t	ld26mziyrxckswso80wcwow8ssokwko	Abtrtf6XGZBBUCBALaDsx7+SIPT73W0Gzx6g9s383TiPS8np+iLXIMx+PWEn5znk3nIOm84OOK83PSU0FRk4+A==	2014-11-22 10:21:59	f	f	\N	\N	\N	a:1:{i:0;s:16:"ROLE_SUPER_ADMIN";}	f	\N	2014-10-11 03:16:02	2014-11-22 10:21:59	\N	Anthony	Huezo	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
-2	carlos	carlos	celainez@gmail.cim	celainez@gmail.cim	t	tqmqa235yi8s4cskwg844kw8o0wko48	DUKv80VJ7AP6OJM7lTclw5338pILZ6HNFh4Lkn6PTq1LFrptuhQdcrDrj2EN6JewtMwjy06wp9QdWmiTT4/vMg==	2014-11-22 10:27:09	f	f	\N	\N	\N	a:1:{i:0;s:10:"ROLE_ADMIN";}	f	\N	2014-10-16 02:24:35	2014-11-22 10:27:09	\N	carlos	lainez	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
-4	kcornejo	\N	kcornejo@gmail.com	\N	t	\N	kcornejo	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	karen	cornejo	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
-5	axel	\N	axell@gmail.com	\N	t	\N	axell	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	axell	tejada	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
+COPY fos_user_user (id, id_dependencia_establecimiento, id_empleado, username, username_canonical, email, email_canonical, enabled, salt, password, last_login, locked, expired, expires_at, confirmation_token, password_requested_at, roles, credentials_expired, credentials_expire_at, created_at, updated_at, date_of_birth, firstname, lastname, website, biography, gender, locale, timezone, phone, facebook_uid, facebook_name, facebook_data, twitter_uid, twitter_name, twitter_data, gplus_uid, gplus_name, gplus_data, token, two_step_code) FROM stdin;
+1	4	\N	Minsal	minsal	minsal@salud.gob.sv	minsal@salud.gob.sv	t	nqc2pq64y9wkwk4o0o8o8ossc00skoc	RYzSYKZJbFvpqIUS7AEyN1vQmix9IKNZoIMUmA3jvZQeEVDlECevcOYlCELWoRingMT36/vAtfBmr9rLEsQXaQ==	2015-01-30 17:29:40	f	f	\N	\N	\N	a:1:{i:0;s:16:"ROLE_SUPER_ADMIN";}	f	\N	2015-01-27 21:03:12	2015-01-30 17:29:40	\N	\N	\N	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
 \.
 
 
@@ -2999,8 +3030,8 @@ COPY fos_user_user (id, username, username_canonical, email, email_canonical, en
 --
 
 COPY fos_user_user_group (user_id, group_id) FROM stdin;
-2	1
-3	3
+1	1
+1	3
 \.
 
 
@@ -3008,7 +3039,7 @@ COPY fos_user_user_group (user_id, group_id) FROM stdin;
 -- Name: fos_user_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('fos_user_user_id_seq', 3, true);
+SELECT pg_catalog.setval('fos_user_user_id_seq', 1, true);
 
 
 --
@@ -3031,8 +3062,8 @@ SELECT pg_catalog.setval('sidpla_actividad_id_seq', 1, false);
 -- Data for Name: sidpla_linea_estrategica; Type: TABLE DATA; Schema: public; Owner: sifda
 --
 
-COPY sidpla_linea_estrategica (id, id_dependencia_establecimiento, descripcion, codigo, activo, anio) FROM stdin;
-1	1	Mejora en el desarrollo de sistemas	DESA12	t	2014
+COPY sidpla_linea_estrategica (id, id_dependencia_establecimiento, descripcion, codigo, activo, anio, recurrente) FROM stdin;
+1	4	Mejora en el desarrollo de sistemas	DESA12	t	2014	t
 \.
 
 
@@ -3118,10 +3149,23 @@ COPY sifda_equipo_trabajo (id, id_orden_trabajo, id_empleado, responsable_equipo
 14	21	3	f
 24	6	2	t
 25	6	4	f
-26	5	3	t
 27	27	2	t
 28	27	5	f
 29	27	4	f
+30	28	3	t
+31	31	1	t
+32	31	2	f
+33	31	5	f
+34	31	4	f
+35	22	3	f
+26	5	4	t
+36	5	1	f
+37	5	2	f
+38	5	5	f
+39	5	1	f
+40	32	3	t
+41	32	1	f
+42	32	2	f
 \.
 
 
@@ -3129,7 +3173,7 @@ COPY sifda_equipo_trabajo (id, id_orden_trabajo, id_empleado, responsable_equipo
 -- Name: sifda_equipo_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 29, true);
+SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 42, true);
 
 
 --
@@ -3137,7 +3181,8 @@ SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 29, true);
 --
 
 COPY sifda_informe_orden_trabajo (id, id_empleado, id_orden_trabajo, id_subactividad, id_dependencia_establecimiento, id_etapa, detalle, fecha_realizacion, fecha_registro, terminado) FROM stdin;
-1	1	1	\N	1	1	xxxxxxxxxxxxx	2014-11-09	2014-11-10	t
+1	1	1	\N	1	1	xxxxxxxxxxxxx	2014-11-09 00:00:00	2014-11-10 00:00:00	t
+2	1	14	\N	1	0	marica	2015-01-30 00:00:00	2015-01-30 00:00:00	f
 \.
 
 
@@ -3145,7 +3190,7 @@ COPY sifda_informe_orden_trabajo (id, id_empleado, id_orden_trabajo, id_subactiv
 -- Name: sifda_informe_orden_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 1, true);
+SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 2, true);
 
 
 --
@@ -3153,33 +3198,39 @@ SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 1, true);
 --
 
 COPY sifda_orden_trabajo (id, id_solicitud_servicio, id_estado, id_etapa, id_dependencia_establecimiento, id_prioridad, descripcion, codigo, fecha_creacion, fecha_finalizacion, observacion) FROM stdin;
-14	2	2	14	4	11	xcxcxcxcxc	MINUN00115	2015-01-03	2015-01-16	dddddd
-13	2	2	9	4	9	plmokn	MINUN00114	2014-11-13	2015-02-13	qazwsx
-15	2	2	23	4	10	edcryhnu	MINDI00515	2015-01-01	2016-02-12	yhnu
-17	2	2	1	4	10	DDDS	MINDI00615	2015-01-16	2015-03-20	DSDDD
-18	2	2	18	4	9	c	MINDI00715	2015-01-20	2015-11-14	ff
-21	2	2	1	9	8	dvvc	MINAL00115	2015-01-08	2015-01-29	dd
-19	2	2	5	19	9	dfdfdfdfd	MINDI00815	2015-01-01	2015-05-15	dsdd
-20	2	2	17	19	9	fdfdfdf	MINDI00915	2015-01-06	2015-02-14	ddsddd
-22	3	2	12	9	8	cfddf	MINAL00215	2015-01-02	2015-01-09	adf
-23	2	2	14	19	11	dddd	MINDI01015	2015-01-06	2015-01-27	ewewewe
-24	2	2	4	19	8	jkl	MINDI01115	2015-01-02	2015-01-30	dfg
-25	2	2	1	7	9	ewewewe	MINCL00115	2015-01-21	2015-04-03	sdddddd
-26	2	2	17	7	8	dddadadas	MINCL00215	2015-01-02	2015-04-24	dfgvdfdf
-27	2	2	13	7	10	dddd	MINCL00315	2015-01-01	2015-01-31	ddds
-5	2	2	29	7	10	tabular resultados	MINDE00115	2015-01-07	2015-03-27	\N
-1	2	2	1	4	9	realizar un analisis del sistema a desarrolar	MINFA00113	2013-11-13	\N	debe ir a la unidad
-2	2	2	2	1	11	daddad	MINFA00213	2013-12-13	2014-12-22	qwertyuiop
-4	3	2	12	1	8	Diseno de bd	MINDE00114	2014-01-02	2015-02-28	las llaves primarias deben ser id
-3	2	4	3	1	10	dsddd	MINFA00114	2014-01-01	2015-11-13	\N
-16	2	2	3	4	10	vvdvbfdvfvd	MINDI00114	2014-11-04	2015-01-15	vdfdgbgfbgf
-6	2	1	19	27	8	elaborar manual	MINDI00115	2015-01-09	2015-01-31	debe seguir std
-7	2	1	18	13	8	sssssssssssss	MINDI00215	2015-01-01	2015-02-19	ssssssssssssss
-8	2	1	17	18	10	ddadas	MINDI00315	2015-01-06	2015-01-20	ddsd
-9	2	2	1	4	8	dsddd	MINDI00415	2015-01-02	2015-01-27	dcfddscd
-12	2	2	15	4	8	mnbv	MINGE00115	2015-01-11	2015-06-26	zxcv
-10	2	2	30	4	9	ddssss	MINGE00114	2014-01-13	2015-01-28	cdcdcd
-11	2	2	1	4	8	adf	MINGE00214	2014-11-04	2015-07-10	qwert
+14	2	2	14	4	11	xcxcxcxcxc	MINUN00115	2015-01-03 00:00:00	2015-01-16 00:00:00	dddddd
+13	2	2	9	4	9	plmokn	MINUN00114	2014-11-13 00:00:00	2015-02-13 00:00:00	qazwsx
+15	2	2	23	4	10	edcryhnu	MINDI00515	2015-01-01 00:00:00	2016-02-12 00:00:00	yhnu
+17	2	2	1	4	10	DDDS	MINDI00615	2015-01-16 00:00:00	2015-03-20 00:00:00	DSDDD
+18	2	2	18	4	9	c	MINDI00715	2015-01-20 00:00:00	2015-11-14 00:00:00	ff
+21	2	2	1	9	8	dvvc	MINAL00115	2015-01-08 00:00:00	2015-01-29 00:00:00	dd
+19	2	2	5	19	9	dfdfdfdfd	MINDI00815	2015-01-01 00:00:00	2015-05-15 00:00:00	dsdd
+20	2	2	17	19	9	fdfdfdf	MINDI00915	2015-01-06 00:00:00	2015-02-14 00:00:00	ddsddd
+22	3	2	12	9	8	cfddf	MINAL00215	2015-01-02 00:00:00	2015-01-09 00:00:00	adf
+23	2	2	14	19	11	dddd	MINDI01015	2015-01-06 00:00:00	2015-01-27 00:00:00	ewewewe
+24	2	2	4	19	8	jkl	MINDI01115	2015-01-02 00:00:00	2015-01-30 00:00:00	dfg
+25	2	2	1	7	9	ewewewe	MINCL00115	2015-01-21 00:00:00	2015-04-03 00:00:00	sdddddd
+26	2	2	17	7	8	dddadadas	MINCL00215	2015-01-02 00:00:00	2015-04-24 00:00:00	dfgvdfdf
+27	2	2	13	7	10	dddd	MINCL00315	2015-01-01 00:00:00	2015-01-31 00:00:00	ddds
+29	2	2	5	19	8	Proyecto de ley para desarrollo de sistemas	MINDI01215	2015-01-22 00:00:00	2015-04-30 00:00:00	debe tomarse en cuenta ciclo de vida
+30	2	2	10	13	10	Establecer estandares para BD	MINDE00215	2015-01-22 00:00:00	2015-02-05 00:00:00	Tomar en cuenta con lo que cuenta MINSAL
+31	3	2	1	8	8	sistema para UACI	MINDI01315	2015-01-22 00:00:00	2015-04-24 00:00:00	para control de efectivo
+6	2	1	19	27	8	elaborar manual	MINPR00115	2015-01-09 00:00:00	2015-01-31 00:00:00	debe seguir std
+5	2	2	29	7	10	tabular resultados	MINDE00115	2015-01-07 00:00:00	2015-03-27 00:00:00	\N
+1	2	2	1	4	9	realizar un analisis del sistema a desarrolar	MINFA00113	2013-11-13 00:00:00	\N	debe ir a la unidad
+2	2	2	2	1	11	daddad	MINFA00213	2013-12-13 00:00:00	2014-12-22 00:00:00	qwertyuiop
+28	3	2	19	4	10	Sistema de elaboracion de facturas	MINCL00415	2015-01-22 00:00:00	2015-01-30 00:00:00	debe imprimir la factura
+4	3	2	12	1	8	Diseno de bd	MINDE00114	2014-01-02 00:00:00	2015-02-28 00:00:00	las llaves primarias deben ser id
+3	2	4	3	1	10	dsddd	MINFA00114	2014-01-01 00:00:00	2015-11-13 00:00:00	\N
+16	2	2	3	4	10	vvdvbfdvfvd	MINDI00114	2014-11-04 00:00:00	2015-01-15 00:00:00	vdfdgbgfbgf
+7	2	1	18	13	8	sssssssssssss	MINDI00215	2015-01-01 00:00:00	2015-02-19 00:00:00	ssssssssssssss
+8	2	1	17	18	10	ddadas	MINDI00315	2015-01-06 00:00:00	2015-01-20 00:00:00	ddsd
+9	2	2	1	4	8	dsddd	MINDI00415	2015-01-02 00:00:00	2015-01-27 00:00:00	dcfddscd
+32	5	2	5	110	10	Resultado pruebas	UNIDI00115	2015-01-24 00:00:00	2015-03-20 00:00:00	Debe existir documento impreso
+12	2	2	15	4	8	mnbv	MINGE00115	2015-01-11 00:00:00	2015-06-26 00:00:00	zxcv
+10	2	2	30	4	9	ddssss	MINGE00114	2014-01-13 00:00:00	2015-01-28 00:00:00	cdcdcd
+11	2	2	1	4	8	adf	MINGE00214	2014-11-04 00:00:00	2015-07-10 00:00:00	qwert
+33	4	2	8	98	11	Realizar el documento	REGSE00115	2015-01-24 00:00:00	2015-01-31 00:00:00	Debe estar impreso
 \.
 
 
@@ -3187,14 +3238,14 @@ COPY sifda_orden_trabajo (id, id_solicitud_servicio, id_estado, id_etapa, id_dep
 -- Name: sifda_orden_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_orden_trabajo_id_seq', 27, true);
+SELECT pg_catalog.setval('sifda_orden_trabajo_id_seq', 33, true);
 
 
 --
 -- Data for Name: sifda_recurso_servicio; Type: TABLE DATA; Schema: public; Owner: sifda
 --
 
-COPY sifda_recurso_servicio (id, id_informe_orden_trabajo, id_tipo_recurso_dependencia, cantidad, costo_unitario) FROM stdin;
+COPY sifda_recurso_servicio (id, id_informe_orden_trabajo, id_tipo_recurso_dependencia, cantidad, costo_total) FROM stdin;
 \.
 
 
@@ -3210,6 +3261,8 @@ SELECT pg_catalog.setval('sifda_recurso_servicio_id_seq', 1, false);
 --
 
 COPY sifda_reprogramacion_servicio (id, id_solicitud_servicio, fecha_reprogramacion, justificacion) FROM stdin;
+1	5	2015-03-28	El servicio solicitado requiere tiempo
+2	4	2015-04-10	No se cuenta con los recursos para su desarrollo
 \.
 
 
@@ -3217,7 +3270,7 @@ COPY sifda_reprogramacion_servicio (id, id_solicitud_servicio, fecha_reprogramac
 -- Name: sifda_reprogramacion_servicio_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_reprogramacion_servicio_id_seq', 1, false);
+SELECT pg_catalog.setval('sifda_reprogramacion_servicio_id_seq', 2, true);
 
 
 --
@@ -3240,10 +3293,6 @@ SELECT pg_catalog.setval('sifda_retraso_actividad_id_seq', 1, false);
 --
 
 COPY sifda_ruta (id, id_tipo_servicio, descripcion, tipo) FROM stdin;
-1	1	etapas y subetapas de desarrollo	etapas y subetapas
-3	10	adfqwert	Sistemas contables para UACI
-2	9	XXXXXXXXXXXXXXXXXXXX	Sistemas contables para ISSS
-5	12	asddffgghtrrtrt	Para unidades de salud
 \.
 
 
@@ -3251,40 +3300,8 @@ COPY sifda_ruta (id, id_tipo_servicio, descripcion, tipo) FROM stdin;
 -- Data for Name: sifda_ruta_ciclo_vida; Type: TABLE DATA; Schema: public; Owner: sifda
 --
 
-COPY sifda_ruta_ciclo_vida (id, id_ruta, id_etapa, descripcion, ref1, jerarquia, ignorar_sig, peso) FROM stdin;
-1	1	\N	Analisis	\N	1	f	30
-3	1	\N	Construccion	\N	3	f	20
-2	1	\N	Diseno	\N	2	f	15
-4	1	\N	Pruebas	\N	4	f	15
-5	1	\N	Documentacion	\N	5	f	10
-7	1	1	Analisis situacion actual	\N	1	f	10
-6	1	\N	Implementacion	\N	6	t	10
-8	1	1	Analisis y determinacion de requerimientos	\N	2	t	20
-9	1	2	Estandares	\N	1	f	5
-10	1	2	Bases de datos	\N	2	f	5
-11	1	2	Entradas, salidas y procesos	\N	3	t	5
-12	1	3	Salidas	\N	1	f	5
-13	1	3	Entradas	\N	2	f	5
-14	1	3	Procesos	\N	3	f	5
-16	1	4	Unitarias	\N	1	f	10
-15	1	3	Documentacion	\N	4	t	5
-17	1	4	Funcionales	\N	2	t	5
-18	1	5	Manual de usuario	\N	1	f	3
-19	1	5	Manual Tecnico	\N	2	f	4
-20	1	5	Manual de Instalacion	\N	3	t	3
-21	1	6	Realizar implementacion	\N	1	t	10
-22	1	\N	wwwww	ddd	44	t	12
-23	1	\N	qwe	dddf	3	t	2
-24	3	\N	Analisis del sistema contable	analisis de costos	1	t	20
-25	3	\N	Requerimientos del sistema contable	deben ser aprobados	2	t	10
-26	3	\N	diseno del sistema	diseno	3	t	15
-27	3	\N	construccion	programacion en php	4	t	15
-28	3	24	situacion actual	atraves de encuestas	1	t	5
-29	3	24	tabulacion	por excel	2	t	5
-30	3	24	Validacion requerimientos	realizar documento	3	t	5
-31	5	\N	Analisis situacion actual	analisis	1	t	4
-32	5	\N	diseno	diseno	2	t	20
-33	5	31	situacion actual	sssss	1	t	10
+COPY sifda_ruta_ciclo_vida (id, id_tipo_servicio, id_etapa, descripcion, referencia, jerarquia, ignorar_sig, peso) FROM stdin;
+1	1	\N	Analisis de sistemas	implica investigacion, observacion entre otros	1	f	10
 \.
 
 
@@ -3292,7 +3309,7 @@ COPY sifda_ruta_ciclo_vida (id, id_ruta, id_etapa, descripcion, ref1, jerarquia,
 -- Name: sifda_ruta_ciclo_vida_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_ruta_ciclo_vida_id_seq', 33, true);
+SELECT pg_catalog.setval('sifda_ruta_ciclo_vida_id_seq', 1, true);
 
 
 --
@@ -3307,8 +3324,20 @@ SELECT pg_catalog.setval('sifda_ruta_id_seq', 5, true);
 --
 
 COPY sifda_solicitud_servicio (id, id_tipo_servicio, user_id, id_dependencia_establecimiento, id_estado, id_medio_solicita, descripcion, fecha_recepcion, fecha_requiere) FROM stdin;
-2	1	2	1	1	5	Sistema contable	2014-11-12	2015-01-07
-3	1	2	1	1	5	pagina web para las farmacias	2014-11-12	2014-12-29
+2	1	1	4	2	5	Sistema contable	2014-10-12 00:00:00	2015-03-07 00:00:00
+3	2	1	7	2	5	Pagina web para las farmacias	2014-11-19 00:00:00	2014-12-29 00:00:00
+4	4	1	20	2	5	Se necesita una aplicación para ver gastos desde el movil	2015-01-23 00:00:00	2015-03-02 00:00:00
+5	10	1	53	2	5	Desarrollo de sistema para control de medicinas	2015-01-23 00:00:00	2015-03-31 00:00:00
+1	7	1	92	1	5	Se requiere un sistema geografico que referencie las unidades de salud	2014-08-29 00:00:00	2014-11-17 00:00:00
+13	4	1	7	3	5	notificacion por celular	2015-01-30 18:58:45	2015-01-30 00:00:00
+14	12	1	86	1	5	Sistema para control de Expedientes	2015-01-30 20:06:54	2015-02-20 00:00:00
+15	5	1	21	1	5	prueba dunga	2015-01-30 21:55:13	2015-01-30 00:00:00
+16	7	1	85	1	5	Control de medicina	2015-01-30 22:33:44	2015-01-30 00:00:00
+17	10	1	95	1	5	Sistema para Planillas	2015-01-30 22:36:55	2015-09-23 00:00:00
+18	4	1	98	1	5	Ubicacion google	2015-01-30 22:46:35	2015-01-31 00:00:00
+21	10	1	3	1	5	prueba sabado dunga	2015-01-31 11:24:10	2015-01-31 00:00:00
+24	9	1	3	1	5	Nueva solicitud	2015-01-31 12:14:50	2015-01-31 00:00:00
+26	9	1	3	1	5	wwwwww	2015-01-31 12:18:56	2015-01-31 00:00:00
 \.
 
 
@@ -3316,7 +3345,7 @@ COPY sifda_solicitud_servicio (id, id_tipo_servicio, user_id, id_dependencia_est
 -- Name: sifda_solicitud_servicio_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_solicitud_servicio_id_seq', 3, true);
+SELECT pg_catalog.setval('sifda_solicitud_servicio_id_seq', 26, true);
 
 
 --
@@ -3353,19 +3382,19 @@ SELECT pg_catalog.setval('sifda_tipo_recurso_id_seq', 1, false);
 -- Data for Name: sifda_tipo_servicio; Type: TABLE DATA; Schema: public; Owner: sifda
 --
 
-COPY sifda_tipo_servicio (id, id_actividad, nombre, descripcion) FROM stdin;
-1	1	Desarrollo de sistemas	Desarrollar un sistema con su ciclo de vida
-2	1	sistema contable de la Dir. de Regulacion	contara con catalogos, estado de resultados, balances, entre otros
-3	1	Sistema de contabilidad para UFI	el desarrollo de este sistema incluye contabilidad gnal y de costos
-4	1	Desarrollo de aplicacion movil	Desarrollo de aplicacion movil para movimientos contables
-5	1	aplicacion movil para costeo	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo
-6	1	xxxxx	yyyyyyyyyyyyyyyy
-7	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX
-8	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX
-9	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX
-10	1	Sistemas contables para UACI	adfqwert
-11	1	Sistema de contabilidad para unidades de salud	asddffgghtrrtrt
-12	1	Para unidades de salud	asddffgghtrrtrt
+COPY sifda_tipo_servicio (id, id_actividad, nombre, descripcion, activo, id_dependencia_establecimiento) FROM stdin;
+1	1	Desarrollo de sistemas	Desarrollar un sistema con su ciclo de vida	t	1
+2	1	sistema contable de la Dir. de Regulacion	contara con catalogos, estado de resultados, balances, entre otros	t	1
+3	1	Sistema de contabilidad para UFI	el desarrollo de este sistema incluye contabilidad gnal y de costos	t	1
+4	1	Desarrollo de aplicacion movil	Desarrollo de aplicacion movil para movimientos contables	t	1
+5	1	aplicacion movil para costeo	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo	t	2
+7	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
+8	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
+9	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	3
+10	1	Sistemas contables para UACI	adfqwert	t	3
+11	1	Sistema de contabilidad para unidades de salud	asddffgghtrrtrt	t	3
+12	1	Para unidades de salud	asddffgghtrrtrt	t	3
+6	1	xxxxx	yyyyyyyyyyyyyyyy	t	4
 \.
 
 
@@ -3389,6 +3418,21 @@ COPY sifda_tracking_estado (id, id_orden_trabajo, id_estado, id_etapa, fecha_ini
 --
 
 SELECT pg_catalog.setval('sifda_tracking_estado_id_seq', 1, false);
+
+
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: sifda
+--
+
+COPY "user" (id, username, password, email, is_active) FROM stdin;
+\.
+
+
+--
+-- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
+--
+
+SELECT pg_catalog.setval('user_id_seq', 1, false);
 
 
 --
@@ -3632,6 +3676,14 @@ ALTER TABLE ONLY sifda_tipo_recurso_dependencia
 
 
 --
+-- Name: user_pkey; Type: CONSTRAINT; Schema: public; Owner: sifda; Tablespace: 
+--
+
+ALTER TABLE ONLY "user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: almacena_fk; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -3657,13 +3709,6 @@ CREATE INDEX conformado_por_fk ON ctl_dependencia USING btree (id_tipo_dependenc
 --
 
 CREATE INDEX constituye_fk ON sifda_tipo_servicio USING btree (id_actividad);
-
-
---
--- Name: contiene_fk; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
---
-
-CREATE INDEX contiene_fk ON sifda_ruta_ciclo_vida USING btree (id_ruta);
 
 
 --
@@ -3772,6 +3817,13 @@ CREATE INDEX establece_estado_fk ON sifda_solicitud_servicio USING btree (id_est
 
 
 --
+-- Name: fki_dependencia_establecimiento_tipo_servicio; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
+--
+
+CREATE INDEX fki_dependencia_establecimiento_tipo_servicio ON sifda_tipo_servicio USING btree (id_dependencia_establecimiento);
+
+
+--
 -- Name: forma_parte_fk; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -3790,6 +3842,20 @@ CREATE INDEX genera_fk ON bitacora USING btree (user_id);
 --
 
 CREATE INDEX gestiona_fk ON sidpla_subactividad USING btree (id_empleado);
+
+
+--
+-- Name: idx_b3c77447a76ed395; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
+--
+
+CREATE INDEX idx_b3c77447a76ed395 ON fos_user_user_group USING btree (user_id);
+
+
+--
+-- Name: idx_b3c77447fe54d947; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
+--
+
+CREATE INDEX idx_b3c77447fe54d947 ON fos_user_user_group USING btree (group_id);
 
 
 --
@@ -4199,6 +4265,20 @@ CREATE UNIQUE INDEX uniq_583d1f3e5e237e06 ON fos_user_group USING btree (name);
 
 
 --
+-- Name: uniq_8d93d649e7927c74; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
+--
+
+CREATE UNIQUE INDEX uniq_8d93d649e7927c74 ON "user" USING btree (email);
+
+
+--
+-- Name: uniq_8d93d649f85e0677; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
+--
+
+CREATE UNIQUE INDEX uniq_8d93d649f85e0677 ON "user" USING btree (username);
+
+
+--
 -- Name: uniq_c560d76192fc23a8; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -4247,7 +4327,7 @@ ALTER TABLE ONLY sifda_tipo_servicio
 --
 
 ALTER TABLE ONLY fos_user_user_group
-    ADD CONSTRAINT fk_b3c77447a76ed395 FOREIGN KEY (user_id) REFERENCES fos_user_user(id);
+    ADD CONSTRAINT fk_b3c77447a76ed395 FOREIGN KEY (user_id) REFERENCES fos_user_user(id) ON DELETE CASCADE;
 
 
 --
@@ -4255,7 +4335,7 @@ ALTER TABLE ONLY fos_user_user_group
 --
 
 ALTER TABLE ONLY fos_user_user_group
-    ADD CONSTRAINT fk_b3c77447fe54d947 FOREIGN KEY (group_id) REFERENCES fos_user_group(id);
+    ADD CONSTRAINT fk_b3c77447fe54d947 FOREIGN KEY (group_id) REFERENCES fos_user_group(id) ON DELETE CASCADE;
 
 
 --
@@ -4347,6 +4427,14 @@ ALTER TABLE ONLY ctl_empleado
 
 
 --
+-- Name: fk_dependencia_establecimiento_tipo_servicio; Type: FK CONSTRAINT; Schema: public; Owner: sifda
+--
+
+ALTER TABLE ONLY sifda_tipo_servicio
+    ADD CONSTRAINT fk_dependencia_establecimiento_tipo_servicio FOREIGN KEY (id_dependencia_establecimiento) REFERENCES ctl_dependencia_establecimiento(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
 -- Name: fk_dependencia_informe; Type: FK CONSTRAINT; Schema: public; Owner: sifda
 --
 
@@ -4395,6 +4483,14 @@ ALTER TABLE ONLY sifda_detalle_solicitud_orden
 
 
 --
+-- Name: fk_e01bb1a3a76ed395; Type: FK CONSTRAINT; Schema: public; Owner: sifda
+--
+
+ALTER TABLE ONLY sifda_solicitud_servicio
+    ADD CONSTRAINT fk_e01bb1a3a76ed395 FOREIGN KEY (user_id) REFERENCES fos_user_user(id);
+
+
+--
 -- Name: fk_empleado_actividad; Type: FK CONSTRAINT; Schema: public; Owner: sifda
 --
 
@@ -4435,19 +4531,27 @@ ALTER TABLE ONLY ctl_dependencia_establecimiento
 
 
 --
--- Name: fk_fos_user_solicitud; Type: FK CONSTRAINT; Schema: public; Owner: sifda
---
-
-ALTER TABLE ONLY sifda_solicitud_servicio
-    ADD CONSTRAINT fk_fos_user_solicitud FOREIGN KEY (user_id) REFERENCES fos_user_user(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
-
-
---
 -- Name: fk_fos_user_user_bitacora; Type: FK CONSTRAINT; Schema: public; Owner: sifda
 --
 
 ALTER TABLE ONLY bitacora
     ADD CONSTRAINT fk_fos_user_user_bitacora FOREIGN KEY (user_id) REFERENCES fos_user_user(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: fk_fos_user_user_dependencia_establecimiento; Type: FK CONSTRAINT; Schema: public; Owner: sifda
+--
+
+ALTER TABLE ONLY fos_user_user
+    ADD CONSTRAINT fk_fos_user_user_dependencia_establecimiento FOREIGN KEY (id_dependencia_establecimiento) REFERENCES ctl_dependencia_establecimiento(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: fk_fos_user_user_empleado; Type: FK CONSTRAINT; Schema: public; Owner: sifda
+--
+
+ALTER TABLE ONLY fos_user_user
+    ADD CONSTRAINT fk_fos_user_user_empleado FOREIGN KEY (id_empleado) REFERENCES ctl_empleado(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -4515,35 +4619,11 @@ ALTER TABLE ONLY sifda_ruta_ciclo_vida
 
 
 --
--- Name: fk_ruta_ciclo_informe; Type: FK CONSTRAINT; Schema: public; Owner: sifda
---
-
-ALTER TABLE ONLY sifda_informe_orden_trabajo
-    ADD CONSTRAINT fk_ruta_ciclo_informe FOREIGN KEY (id_etapa) REFERENCES sifda_ruta_ciclo_vida(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
-
-
---
--- Name: fk_ruta_ciclo_orden; Type: FK CONSTRAINT; Schema: public; Owner: sifda
---
-
-ALTER TABLE ONLY sifda_orden_trabajo
-    ADD CONSTRAINT fk_ruta_ciclo_orden FOREIGN KEY (id_etapa) REFERENCES sifda_ruta_ciclo_vida(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
-
-
---
 -- Name: fk_ruta_ciclo_tracking; Type: FK CONSTRAINT; Schema: public; Owner: sifda
 --
 
 ALTER TABLE ONLY sifda_tracking_estado
     ADD CONSTRAINT fk_ruta_ciclo_tracking FOREIGN KEY (id_etapa) REFERENCES sifda_ruta_ciclo_vida(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
-
-
---
--- Name: fk_ruta_ruta_ciclo; Type: FK CONSTRAINT; Schema: public; Owner: sifda
---
-
-ALTER TABLE ONLY sifda_ruta_ciclo_vida
-    ADD CONSTRAINT fk_ruta_ruta_ciclo FOREIGN KEY (id_ruta) REFERENCES sifda_ruta(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -4603,11 +4683,11 @@ ALTER TABLE ONLY sifda_tipo_recurso_dependencia
 
 
 --
--- Name: fk_tipo_servicio_ruta; Type: FK CONSTRAINT; Schema: public; Owner: sifda
+-- Name: fk_tipo_servicio_ruta_ciclo; Type: FK CONSTRAINT; Schema: public; Owner: sifda
 --
 
-ALTER TABLE ONLY sifda_ruta
-    ADD CONSTRAINT fk_tipo_servicio_ruta FOREIGN KEY (id_tipo_servicio) REFERENCES sifda_tipo_servicio(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE ONLY sifda_ruta_ciclo_vida
+    ADD CONSTRAINT fk_tipo_servicio_ruta_ciclo FOREIGN KEY (id_tipo_servicio) REFERENCES sifda_tipo_servicio(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -4631,4 +4711,3 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 --
 -- PostgreSQL database dump complete
 --
-
