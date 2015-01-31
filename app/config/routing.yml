@@ -1,0 +1,19 @@
+minsal_user:
+    resource: "@MinsalSifdaBundleUserBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+minsal_sifda_bundle_user:
+    resource: "@MinsalSifdaBundleUserBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+acme_user:
+    resource: "@AcmeUserBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+minsalsifda:
+    resource: "@MinsalsifdaBundle/Resources/config/routing.yml"
+    prefix:   /
+
