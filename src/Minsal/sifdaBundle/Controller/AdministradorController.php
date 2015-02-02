@@ -18,10 +18,30 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 class AdministradorController extends Controller
 {
 
+    
+     /**
+     * Lists all SidplaLineaEstrategica entities.
+     *
+     * @Route("/", name="sifda_administrador")
+     * @Method("GET")
+     * @Template()
+     */
+    public function indexAction()
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $entities = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findAll();
+
+        return array(
+            'entities' => $entities,
+        );
+    }
+
+
     /**
      * Lists all Catalogo entities.
      *
-     * @Route("/", name="sifda_administrador")
+     * @Route("/index", name="sifda_administrador2")
      * @Method("GET")
      * @Template()
      */

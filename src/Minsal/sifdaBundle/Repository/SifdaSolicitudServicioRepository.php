@@ -8,16 +8,16 @@ class SifdaSolicitudServicioRepository extends EntityRepository
    /*Repositorio que consulta las solicitudes por rango de fechas*/
    public function FechaSolicitud($fechaInicio, $fechaFin)
     {        
-       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion BETWEEN '$fechaInicio' AND '$fechaFin' ORDER BY s.fechaRecepcion DESC";	     
+       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion >= '$fechaInicio' AND s.fechaRecepcion <='$fechaFin' ORDER BY s.fechaRecepcion DESC";	     
        $repositorio = $this->getEntityManager()->createQuery($dql);       
        return $repositorio->getResult();	
     }
     
     
     /*Repositorio que consulta las solicitudes por rango de fechas*/
-   public function FechaSolicitudIngresada($fechaInicio, $fechaFin)
+   public function FechaSolicitudIngresada($fechaInicio, $fechaFin,$tipoServicio)
     {        
-       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion BETWEEN '$fechaInicio' AND '$fechaFin' AND s.idEstado=1 ORDER BY s.fechaRecepcion DESC";	     
+       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion >= '$fechaInicio' AND s.fechaRecepcion <='$fechaFin' AND s.idTipoServicio='$tipoServicio' AND s.idEstado=1 ORDER BY s.fechaRecepcion DESC";	     
        $repositorio = $this->getEntityManager()->createQuery($dql);       
        return $repositorio->getResult();	
     }

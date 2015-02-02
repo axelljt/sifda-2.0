@@ -9,6 +9,7 @@
 
 {% block contenido_in %}
     {# cuadro Modal#}
+     Fecha del sistema: {{ "now"|date("d/m/Y") }} usuario:{{usuario.username}}
     <input type="hidden" id="exito" value="{{exito}}">  
     <div class="page-header">
         <center><h3>Mostrar las solicitudes de servicio</h3></center>
@@ -16,29 +17,42 @@
     <div id="seleccion">
         <div class="row-fluid">
             <div class="span11 offset1">
-            <table>
-                <tr>
-                    <td>
-                    <input type="radio" name="consulta" id="todos" value="todos" checked>Todos<br>
-                    <input type="radio" name="consulta" id="especifico" value="especifico">Especifico
-                    </td>
-                    <td></td>
-                </tr>
-            </table>    
-                <div>
+                
+                <div class="span3">
+                    
+                </div>
+                <div class="span2">
+                  <table>
+                      <tr>
+                        <td>
+                            <input type="radio" name="consulta" id="todos" value="todos" checked>Todos<br>
+                            <input type="radio" name="consulta" id="especifico" value="especifico">Especifico
+                        </td>
+                        <td></td>
+                    </tr>
+                </table>   
+                
+                </div>
+                <div class="span5">
+                    
                     <table id="fechas">
                         <tr>
-                            <td><label>Fecha Inicio: </label></td><td><input type="text" id="fechaInicio" value=""></td>
-                            <td><label>Fecha Fin: </label></td><td><input type="text" id="fechaFin" value=""></td>
+                            <td><label>Fecha Inicio: </label></td><td><input type="text" id="fechaInicio" readonly="true" class="input-small"></td>
+                            
+                        </tr>
+                        <tr>
+                            <td><label>Fecha Fin: </label></td><td><input type="text" id="fechaFin" readonly="true" class="input-small"></td>
+                            <td></td><td></td>
                             <td><input type="submit" class="btn btn-primary" id="b1" onclick="mostrarvalores()" value="Buscar" name="Buscar"></td>
-                        </tr>    
+                        </tr>
                     </table>    
-                    <div id="rangoTabla"></div>
-                </div>              
+                    
+                    
+                </div>                             
             </div>
         </div>    
     </div>
-        
+    <div id="rangoTabla"></div>    
     <div id="dialog">
         
     </div>
@@ -57,6 +71,7 @@
         </thead>
         <tbody>
         {% for entity in entities %}
+            {%if entity.idDependenciaEstablecimiento==usuario.idDependenciaEstablecimiento%}
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ entity.descripcion }}</td>
@@ -82,6 +97,7 @@
                 </ul>
                 </td>
             </tr>
+            {% endif %}
         {% endfor %}
         
       </tbody>
@@ -119,6 +135,8 @@
                 $('#dialog').attr('title','saved').text('Hay {{dependencias}} solicitudes Nuevas').dialog(); #}
 
         document.getElementById('todos').checked=true;
+        document.getElementById('fechaInicio').value="";
+        document.getElementById('fechaFin').value="";
         
         $('#fechas').hide("slow");
         //alert($('#todos').val());
@@ -130,7 +148,8 @@
         
         $('#especifico').click(function(){ 
         $('#fechas').show("slow");    
-        $('#tabla').hide("slow");          
+        $('#tabla').hide("slow");
+        $('#rangoTabla').show("slow");
         });
         
         

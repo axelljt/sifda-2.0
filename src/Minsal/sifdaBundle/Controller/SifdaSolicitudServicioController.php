@@ -70,15 +70,19 @@ class SifdaSolicitudServicioController extends Controller
     /**
      * Lists all SifdaSolicitudServicio entities.
      *
-     * @Route("/index/{exito}",requirements={"exito"="\d+"}, defaults={"exito"=0}, name="sifda_solicitudservicio")
+     * @Route("/{exito}",requirements={"exito"="\d+"}, defaults={"exito"=0}, name="sifda_solicitudservicio")
      * @Method("GET")
      * @Template()
      */
     public function indexAction($exito)
     {
-        
+        $idusuario=1;
         $em = $this->getDoctrine()->getManager();
 
+        $usuario= $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($idusuario);
+        
+        
+        
         $entities = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(),
                                                                                        array(
                                                                                 'fechaRecepcion' =>  'DESC',
@@ -86,7 +90,7 @@ class SifdaSolicitudServicioController extends Controller
                                                                                ));
 
         $estado=1;
-        $em = $this->getDoctrine()->getManager();
+//        $em = $this->getDoctrine()->getManager();
         
          $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->ContarSolicitudesIngresadas($estado);
 //         $solicitudes2=  implode("",$solicitudes);
@@ -96,13 +100,15 @@ class SifdaSolicitudServicioController extends Controller
                 throw $this->createNotFoundException('Unable to find SifdaSolicitudServicio entity.');
              }
             
-                     
+                          
        $valor=  array_shift($solicitudes);
              
         return array(
             'entities' => $entities,
             'dependencias'=>$valor,
             'exito'=>$exito,
+            'usuario'=>$usuario,
+         
            
         );
     }
@@ -116,8 +122,14 @@ class SifdaSolicitudServicioController extends Controller
      */
     public function gestionSolicitudesAction()
     {
+        $id_usuario=1;
         $em = $this->getDoctrine()->getManager();
+        
+        $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
 
+        $establecimiento= $em->getRepository('MinsalsifdaBundle:CtlEstablecimiento')->findAll();
+        
+        
         $objEstado1 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(1);
         $ingresados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
                                                                                     'idEstado' => $objEstado1
@@ -148,6 +160,8 @@ class SifdaSolicitudServicioController extends Controller
             'rechazados'=>$rechazados,
             'asignados'=>$asignados,
             'estados'=> $Estados,
+            'usuario'=>$usuario,
+            'establecimiento'=>$establecimiento,
         );
     }
     
@@ -186,8 +200,9 @@ class SifdaSolicitudServicioController extends Controller
         if($isAjax){
              $fechaInicio = $this->get('request')->request->get('fechaInicio');
              $fechaFin = $this->get('request')->request->get('fechaFin');
+             $tipoServicio = $this->get('request')->request->get('tipoServicio');
              $em = $this->getDoctrine()->getManager();
-             $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudIngresada($fechaInicio, $fechaFin);
+             $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudIngresada($fechaInicio, $fechaFin,$tipoServicio);
              $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesIngShow.html.twig' , array('solicitudes' =>$solicitudes));
              $response = new JsonResponse();
              return $response->setData($mensaje);
@@ -361,12 +376,22 @@ class SifdaSolicitudServicioController extends Controller
              $idEstablecimiento = $this->get('request')->request->get('idEstablecimiento');
              $em = $this->getDoctrine()->getManager();
              $dependencia_establecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findBy(array('idEstablecimiento'=>$idEstablecimiento));
-
+             $dependencias=array();   
+             
              foreach($dependencia_establecimiento as $d)
              {
-                 $dependencias[] = $d->getIdDependencia();
+                 $dependencias[] = $d->getIdDependencia()->getNombre();
+                  
              }
-             $mensaje = $this->renderView('MinsalsifdaBundle:CtlDependencia:dependenciasShow.html.twig' , array('dependencias' =>$dependencias));
+             
+             
+             
+             $dependencia = $em->getRepository('MinsalsifdaBundle:CtlDependencia')->findBy(array('nombre'=>$dependencias),array('nombre' => 'ASC'));
+             
+             
+//             ladybug_dump($dependencia);
+             
+             $mensaje = $this->renderView('MinsalsifdaBundle:CtlDependencia:dependenciasShow.html.twig' , array('dependencias' =>$dependencia));
              $response = new JsonResponse();
              return $response->setData($mensaje);
         }else
