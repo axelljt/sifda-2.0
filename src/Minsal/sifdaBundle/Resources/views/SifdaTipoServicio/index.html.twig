@@ -11,15 +11,18 @@
         <thead>
             <tr>
                 <th>Correlativo</th>
-                <th>Nombre</th>
-                <th>Descripcion</th>
+                <th><center>Nombre</center></th>
+                <th><center>Descripcion</center></th>
                 <th>Acciones</th>
             </tr>
         </thead>
-                <tbody>
+        <tbody>
+        {% set corr = 1 %}    
         {% for entity in entities %}
+            
+            {% if entity.idDependenciaEstablecimiento == usuario.idDependenciaEstablecimiento %}
             <tr>
-                <td>{{ entity.id }}</td>
+                <td><center>{{ corr }}</center></td>
                 <td>{{ entity.nombre }}</td>
                 <td>{{ entity.descripcion }}</td>
                 <td>
@@ -33,6 +36,8 @@
                 </ul>
                 </td>
             </tr>
+            {% set corr = corr + 1 %}
+            {% endif %}
         {% endfor %}
         </tbody>
     </table>

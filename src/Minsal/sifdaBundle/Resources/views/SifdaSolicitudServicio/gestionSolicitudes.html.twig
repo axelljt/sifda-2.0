@@ -2,7 +2,7 @@
 
 {% block contenido_in -%}
     <div class="page-header">
-        Fecha del sistema: {{ "now"|date("d/m/Y") }} usuario:{{usuario.username}}
+        Fecha del sistema: {{ "now"|date("d/m/Y") }} usuario:{{usuario.username}} dependencia:{{usuario.idDependenciaEstablecimiento.idDependencia}}
         <center><h3>Gestion de solicitudes de servicio</h3></center>
     
     </div>
@@ -40,23 +40,33 @@
                     
                     
                              
-                <div class="span2">
+                <div class="span3">
                  <table>
                             <tr>
                                 <td>
                                 <input type="radio" name="consulta" id="Todos" value="Todos">Todos</td>
+                                
                                 </td>
                             </tr>
                             <tr>
-                                <td>
-                                    <input type="radio" name="consulta" id="especifico" value="especifico" >Especifico
-                                </td>
+                                <td><input type="radio" name="consulta" id="especifico" value="especifico" >Especifico</td>
+                            </tr>
+                            
+                                
+                                
+                                
+                                
                                 
                                 {#<td>
                                     <div id="btn1">
                                         <input type="submit" class="btn btn-primary" id="bbuscar" value="Buscar" name="Buscar">
                                     </div>
                                 </td>#}
+                            
+                            <tr>
+                                <td></td>
+                                <td><input type="submit" class="btn btn-primary" id="btnr1" value="PDF " name="GenerarPDF " onclick="window.open('/reports/solicitudesReport_ingresados.php?fi='+mostrarfi()+'&ff='+mostrarff())"></td>
+                                <td><input type="submit" class="btn btn-primary" id="btnr2" value="Excel " name="GenerarExcel "></td>
                             </tr>
                             
                  </table>
@@ -889,6 +899,15 @@
     }
     /*Fin del codigo de ventana*/
    
+   function mostrarfi(){ 
+      return $("#fechaInicio").val();
+        
+    }
+    
+      function mostrarff(){ 
+       return $("#fechaFin").val();
+        
+    }
    
    function LimpiarCamposFecha(){
             

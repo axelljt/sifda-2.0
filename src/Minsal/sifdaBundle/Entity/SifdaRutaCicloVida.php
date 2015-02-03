@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * SifdaRutaCicloVida
  *
  * @ORM\Table(name="sifda_ruta_ciclo_vida", uniqueConstraints={@ORM\UniqueConstraint(name="idx_sifda_ruta_ciclo_vida", columns={"id"})}, indexes={@ORM\Index(name="idx_id_ruta_etapa", columns={"id_etapa"}), @ORM\Index(name="IDX_26B328FEA36B7986", columns={"id_tipo_servicio"})})
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Minsal\sifdaBundle\Repository\SifdaRutaCicloVidaRepository")
  */
 class SifdaRutaCicloVida
 {

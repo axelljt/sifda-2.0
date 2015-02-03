@@ -30,9 +30,14 @@ class SifdaTipoServicioController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         $entities = $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findAll();
+        
+        $user_id = 1;
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($user_id);
+
 
         return array(
             'entities' => $entities,
+            'usuario'  => $usuario,
         );
     }
     /**
@@ -47,21 +52,17 @@ class SifdaTipoServicioController extends Controller
         $tiposervicio = new SifdaTipoServicio();
         $form = $this->createCreateForm($tiposervicio);
         $form->handleRequest($request);
-
+        
+        $user_id = 1;
+        $em = $this->getDoctrine()->getManager();
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($user_id);
+        $tiposervicio->setIdDependenciaEstablecimiento($usuario->getIdDependenciaEstablecimiento());
+        
         if ($form->isValid()) {
             $tiposervicio->setActivo(TRUE);
             $em = $this->getDoctrine()->getManager();
             $em->persist($tiposervicio);
             $em->flush();
-            
-            //$ruta = new \Minsal\sifdaBundle\Entity\SifdaRuta();
-            //$ruta->setDescripcion($tiposervicio->getDescripcion());
-            //$ruta->setTipo($tiposervicio->getNombre());
-            //$ruta->setIdTipoServicio($tiposervicio);
-            
-            //$em = $this->getDoctrine()->getManager();
-            //$em->persist($ruta);
-            //$em->flush();
             
             return $this->redirect($this->generateUrl('sifdatiposervicio_show', array('id' => $tiposervicio->getId())));
         }

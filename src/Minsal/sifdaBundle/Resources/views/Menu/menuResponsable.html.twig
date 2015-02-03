@@ -3,6 +3,20 @@
     <div class=" navbar-inner">
         <div class="container">
             <ul class="nav">
+                    
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
+                        SOLICITUDES
+                        <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a tabindex="-1" href="#">Ingresadas</a></li>
+                            <li><a tabindex="-2" href="#">Rechazadas</a></li>
+                            <li><a tabindex="-2" href="#">Reprogramadas</a></li>
+                            <li><a tabindex="-3" href="#">Finalizadas</a></li>
+                        </ul>http://sifda.localhost/app_dev.php
+                    </div>    
+                
                     <div class="btn-group">
                         <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
                         TIPO DE SERVICIO
@@ -11,8 +25,8 @@
                         <ul class="dropdown-menu">
                             <li><a tabindex="-1" href="{{path('sifdatiposervicio')}}">Gestionar Tipos de servicio</a></li>
                             <li><a tabindex="-2" href="{{ path('sifdatiposervicio_new') }}">Registrar un tipo de servicio</a></li>
-                            <li><a tabindex="-3" href="">Editar un tipo de servicio</a></li>
-                            <li><a tabindex="-4" href="">Mostrar etapas de un tipo de servcio</a></li>
+                          {#  <li><a tabindex="-3" href="">Editar un tipo de servicio</a></li>
+                            <li><a tabindex="-4" href="">Mostrar etapas de un tipo de servcio</a></li>#}
                         </ul>
                     </div>
                     <div class="btn-group">
@@ -24,8 +38,8 @@
                             <li><a tabindex="-1" href="{{path('sifda_gestionSolicitudes')}}">Gestionar Solicitud de Servicio</a></li>
                             <li><a tabindex="-2" href="{{path('sifda_ordentrabajo_gestion')}}">Gestionar Ordenes de Trabajo</a></li>
                             <li><a tabindex="-3" href="">Seguimiento de Ordenes de Trabajo</a></li>
-                            <li><a tabindex="-4" href="">Gestion de recursos</a></li>
-                            <li><a tabindex="-5" href="">Consultar Carga Laboral por Tecnico</a></li>
+                                {#<li><a tabindex="-4" href="">Gestion de recursos</a></li>#}
+                            <li><a tabindex="-4" href="">Consultar Carga Laboral por Tecnico</a></li>
                         </ul>
                     </div>
                         
@@ -40,7 +54,7 @@
                         </ul>
                     </div>
                         
-                    <div class="btn-group">
+                    {#<div class="btn-group">
                         <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
                         EMPLEADO
                         <span class="caret"></span>
@@ -49,8 +63,8 @@
                             <li><a tabindex="-1" href="">Gestion de Empleado</a></li>
                             <li><a tabindex="-2" href="">Gestion de Cargo</a></li>
                         </ul>
-                    </div>
-                        
+                    </div>#}
+                       
                     <div class="btn-group">
                         <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
                         DEPENDENCIA
@@ -59,8 +73,19 @@
                         <ul class="dropdown-menu">
                             <li><a tabindex="-1" href="">Gestion de Tipo de Dependencia</a></li>
                             <li><a tabindex="-2" href="">Gestion de Dependencia</a></li>
-                            <li><a tabindex="-3" href="">Gestion de Establecimiento</a></li>
-                            <li><a tabindex="-4" href="">Gestion de Establecimiento Dependencia</a></li>
+                            
+                        </ul>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
+                        ESTABLECIMIENTO
+                        <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                          
+                            <li><a tabindex="-1" href="">Gestion de Establecimiento</a></li>
+                            <li><a tabindex="-2" href="">Gestion de Establecimiento Dependencia</a></li>
                         </ul>
                     </div>
                     <div class="btn-group">
@@ -72,9 +97,24 @@
                             <li><a tabindex="-1" href="">Gestion de Actividad</a></li>
                             <li><a tabindex="-2" href="">Gestion de Subactividad</a></li>
                             <li><a tabindex="-3" href="">Gestion de Linea estrategica</a></li>
-                            <li><a tabindex="-4" href="">Gestion de tipo se servicio</a></li>
+                            {#<li><a tabindex="-4" href="">Gestion de tipo se servicio</a></li>#}
                         </ul>
-                    </div>    
+                    </div> 
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
+                        PAO
+                        <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a tabindex="-1" href="">Cargar PAO</a></li>
+                            <li><a tabindex="-2" href="">XXXXXXXX</a></li>
+                            <li><a tabindex="-3" href="">Registrar Ordenes PAO</a></li>
+                            {#<li><a tabindex="-4" href="">Gestion de tipo se servicio</a></li>
+                            <li><a tabindex="-5" href={{path('sifda_solicitudservicio')}}>Consultar solicitud de servicio</a></li>#}
+                        
+                        </ul>
+                    </div>         
+                        
             </ul>
 	</div>
     </div>

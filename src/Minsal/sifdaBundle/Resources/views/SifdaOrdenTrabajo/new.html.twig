@@ -53,12 +53,13 @@
                         {{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
                         {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}
                         {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
-                        {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
+                        {{form_row(form.idPrioridad)}}
                     </div>
                     <div class="span5 offset1"> 
-                        {{form_row(form.idEtapa)}}
-                        {{form_row(form.idPrioridad)}}
+                        {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
+                       {# {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}#}
                         {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
+                        {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
                     </div>
                 </div>
             	<br><br>
@@ -87,8 +88,43 @@
     <script>
     $(document).ready(function(){
         
-        
-        
+        document.getElementById("minsal_sifdabundle_sifdaordentrabajo_idEtapa").value="";
+                
+        $("#minsal_sifdabundle_sifdaordentrabajo_idEtapa").change(function(){ 
+
+            var idEtapa = $("#minsal_sifdabundle_sifdaordentrabajo_idEtapa").val();
+           // idEtapa = idEtapa;
+            //alert(idEtapa);
+;            if(idEtapa !="")
+            {
+                //alert(idEtapa);
+                $.post(
+                '{{path('sifda_sifdaordentrabajo_find_subetapa')}}', 
+                  { 
+                    idEtapa:idEtapa
+                  }
+                  , function( data ) {
+                    console.log( data );
+                    //alert(data);
+                        $("#minsal_sifdabundle_sifdaordentrabajo_idSubEtapa").html(data);
+
+                 }, "json");
+            }
+            else 
+            {
+                $.post(
+                '{{path('sifda_sifdaordentrabajo_select_subetapa')}}', 
+                    function( data ) {
+                    console.log( data );
+                        $("#minsal_sifdabundle_sifdaordentrabajo_idSubEtapa").html(data);
+
+                 }, "json");
+            }
+        });
+    });
+    
+    $(document).ready(function(){
+    
         $("#minsal_sifdabundle_sifdaordentrabajo_establecimiento").change(function(){
             
             var IdEstablecimiento = $("#minsal_sifdabundle_sifdaordentrabajo_establecimiento").val();

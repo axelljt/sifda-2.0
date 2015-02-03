@@ -13,7 +13,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 /**
  * Catalogo controller.
  *
- * @Route("/sifda/administrador")
+ * @Route("/sifda/responsable")
  */
 class AdministradorController extends Controller
 {
@@ -22,7 +22,7 @@ class AdministradorController extends Controller
      /**
      * Lists all SidplaLineaEstrategica entities.
      *
-     * @Route("/", name="sifda_administrador")
+     * @Route("/", name="sifda_responsable")
      * @Method("GET")
      * @Template()
      */

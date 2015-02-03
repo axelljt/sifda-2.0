@@ -8,8 +8,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Doctrine\ORM\EntityRepository;
 use Minsal\sifdaBundle\Entity\SifdaOrdenTrabajo;
 use Minsal\sifdaBundle\Form\SifdaOrdenTrabajoType;
+use Minsal\sifdaBundle\Entity\Vwetapassolicitud;
 
 /**
  * SifdaOrdenTrabajo controller.
@@ -76,11 +78,13 @@ class SifdaOrdenTrabajoController extends Controller
         
         $form->handleRequest($request);
         $parameters = $request->request->all();
+        //ladybug_dump($parameters['idEtapa']);
         foreach($parameters as $p){
             $idDependencia = $p['dependencia'];
             $idEstablecimiento = $p['establecimiento'];
+            $idEtapa = $p['idEtapa'];
         }
-
+        ladybug_dump($p['idEtapa']);
         $idDependenciaEstablecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findOneBy(array(
                                                            'idEstablecimiento' => $idEstablecimiento,
                                                            'idDependencia' => $idDependencia         
@@ -105,6 +109,7 @@ class SifdaOrdenTrabajoController extends Controller
         if (count($errors)<=0) {
             $entity->setFechaCreacion(new \DateTime("now"));
             $entity->setIdEstado($idEstado);
+            $entity->setIdEtapa($idEtapa);
             $em = $this->getDoctrine()->getManager();
             $em->persist($entity);
             $em->flush();
@@ -138,12 +143,94 @@ class SifdaOrdenTrabajoController extends Controller
      * @return \Symfony\Component\Form\Form The form
      */
     private function createCreateForm(SifdaOrdenTrabajo $entity, $id)
-    {
+    {        
         $form = $this->createForm(new SifdaOrdenTrabajoType(), $entity, array(
-            'action' => $this->generateUrl('sifda_ordentrabajo_create', array('id' => $id)),
-            'method' => 'POST',
-        ));
-
+                'action' => $this->generateUrl('sifda_ordentrabajo_create', array('id' => $id)),
+                'method' => 'POST',
+            ));
+        
+        $em = $this->getDoctrine()->getManager();
+        
+        /* Se obtiene la informacion del servicio solicitado con sus respectivas etapas            *
+         * y en que estado se encuentran mostrando a la persona asignada a realizar la             *
+         * la orden de trabajo                                                                     */
+        $solicitudEtapa = $em->getRepository('MinsalsifdaBundle:Vwetapassolicitud')->findBy(array('idSolicitud'=>$id));
+        //ladybug_dump($solicitudEtapa);
+        //Se obtiene la informacion de la solicitud de servicio que se ha seleccionado                             
+        $solicitud = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
+        
+        //Se obtienen todas ordenes de trabajo de una determinada solicitud de servicio
+        $dql = "SELECT ot
+                FROM MinsalsifdaBundle:SifdaOrdenTrabajo ot
+                INNER JOIN ot.idSolicitudServicio ss
+                WHERE ss.id = :id";
+        
+        $solicitudOrdenes = $em->createQuery($dql)
+                             ->setParameter(':id', $id)
+                             ->getResult();
+        
+        //Se obtienen las etapas del servicio solicitado
+        $actividad = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findBy(array(
+                                                                            'idTipoServicio' => $solicitud->getIdTipoServicio(),
+                                                                            'idEtapa' => NULL
+                                                                            ));
+        
+        $solicitudOrden=array(); 
+        
+        foreach ($solicitudEtapa as $value) {
+            //ladybug_dump($value->getIdOrden());
+            if(!is_null($value->getIdOrden())){
+                $solicitudOrden[] = $value->getIdOrden();
+            }
+            
+            
+        }
+        
+        //ladybug_dump($solicitudOrden);
+        //Si la solicitud de servicio no tiene ordenes de trabajo registradas
+        if(!$solicitudOrden){
+            
+            //Llenado del combobox con las actividades que tienen jerarquia 1
+            $form->add('idEtapa', 'entity', array(
+                        'label'         =>  'Actividad a realizar',
+                        'empty_value'=>'Seleccione una actividad',
+                        'class'         =>  'MinsalsifdaBundle:SifdaRutaCicloVida',
+                        'query_builder' =>  function(EntityRepository $repositorio) use ( $solicitud ){
+                    return $repositorio
+                            ->createQueryBuilder('rcv')
+                            ->where('rcv.idTipoServicio = :tiposervicio')
+                            ->andWhere('rcv.idEtapa IS NULL')
+                            ->andWhere('rcv.jerarquia = 1')
+                            ->setParameter(':tiposervicio', $solicitud->getIdTipoServicio());
+                    }));
+            
+            $idEtapa = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);        
+                    
+            //Se obtienen las subactividades que corresponden a una determinada etapa
+            $subactividades = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findBy(array(
+                                                            'idTipoServicio' => $solicitud->getIdTipoServicio(),
+            //                                                'idEtapa' => $actividades->getIdTipoServicio()
+                                                                ));  
+            
+            //Si la etapa del tipo de servicio tiene subetapas        
+            //if ($subactividades){ 
+            
+                //Se agrega un tipo de campo de la subetapa sin
+                $form->add('idSubEtapa', 'entity', array(
+                            'label'         =>  'Subactividad a realizar',
+                            'class'         =>  'MinsalsifdaBundle:SifdaRutaCicloVida',
+                            'empty_value'=>'Seleccione una subactividad',
+                            'mapped' => false,
+                            'choices' => array()
+                        ));
+            //  }
+        }
+        //Si a la solicitud de servicio se le han creado ordenes de trabajo
+        elseif($solicitudOrden) {
+            
+            
+            
+        }        
         $form->add('submit', 'submit', array('label' => 'Crear orden de trabajo'));
 
         return $form;
@@ -304,7 +391,7 @@ class SifdaOrdenTrabajoController extends Controller
         $editForm = $this->createEditForm($entity);
         $editForm->handleRequest($request);
         
-        //Obtener la dependencia y establecimiento de la orden de trabajo
+        //Obtener la dependencia y establecimiento de la orden de trabajo a actualizar
         $establecimiento = $editForm->get('establecimiento')->getData();
         $dependencia = $editForm->get('dependencia')->getData();
         $idDependenciaEstablecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findOneBy(array(
@@ -439,5 +526,48 @@ class SifdaOrdenTrabajoController extends Controller
         $codigo.= $fechaActual->format('y');
         
         return $codigo;
+    }
+    
+    /**
+    * Ajax utilizado para buscar las subetapas segun la etapa que se ha seleccionado
+    *  
+    * @Route("/find_subetapa_orden", name="sifda_sifdaordentrabajo_find_subetapa")
+    */
+    public function FindSubEtapaOrdenAction()
+    {
+        $isAjax = $this->get('Request')->isXMLhttpRequest();
+        if($isAjax){
+             $idEtapa = $this->get('request')->request->get('idEtapa');
+             $em = $this->getDoctrine()->getManager();
+             
+             //Se obtiene la entidad de la etapa seleccionada
+             $Etapa = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->find($idEtapa);
+             
+             //Se obtienen las subetapas de una determinada etapa
+             $idSubetapa = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findByIdEtapa($Etapa);
+
+             //Se realiza el llenado del combobox con las subetapas de la etapa seleccionada
+             $mensaje = $this->renderView('MinsalsifdaBundle:SifdaRutaCicloVida:llenadoSubetapas.html.twig' , array('subetapas' =>$idSubetapa));
+             $response = new JsonResponse();
+             
+             //Retorna las subetapas de la etapa seleccionada
+             return $response->setData($mensaje);
+        }else
+            {   return new Response('0');   }       
+    }
+    
+    /** Ajax utilizado vaciar combobox de subetaoas cuando no ha seleccionado una etapa
+    *  
+    * @Route("/find_vacio_subetapa", name="sifda_sifdaordentrabajo_select_subetapa")
+    */
+    public function subetapasVacioAction()
+    {
+        $isAjax = $this->get('Request')->isXMLhttpRequest();
+        if($isAjax){
+             $mensaje = $this->renderView('MinsalsifdaBundle:SifdaRutaCicloVida:subetapasVacio.html.twig');
+             $response = new JsonResponse();
+             return $response->setData($mensaje);
+        }else
+            {   return new Response('0');   }       
     }
 }

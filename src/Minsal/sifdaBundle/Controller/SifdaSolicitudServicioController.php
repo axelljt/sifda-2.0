@@ -51,14 +51,35 @@ class SifdaSolicitudServicioController extends Controller
             
 //                $texto = $this->get('request')->request->get('texto');
 //		$id=$this->get('request')->request->get('id');
-                $message = \Swift_Message::newInstance()
+        
+        $correos=array('axelljt@gmail.com','karensita8421@gmail.com','anthony.huezo@gmail.com');
+       
+        foreach ($correos as $correo){
+            
+            
+             $message = \Swift_Message::newInstance()
 			->setSubject('Envio de prueba')
 			->setFrom('testing@sifda.gob.sv')
-			->setTo('axelljt@gmail.com')
+			->setTo($correo)
 			->setBody($texto)
 #			->setBody($this->renderView('HelloBundle:Hello:email.txt.twig', array('name' => $name)))
     ;
         $this->get('mailer')->send($message);     // then we send the message.
+            
+        }
+        
+//        for($i=0;$i<$correos.length();$i++){
+           
+          
+            
+            
+           
+//       }
+            
+             
+       
+            
+           
         
         
          return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:SendEmail.html.twig');
@@ -927,4 +948,6 @@ class SifdaSolicitudServicioController extends Controller
             ->getForm()
         ;
     }
+     
+    
 }
