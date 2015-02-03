@@ -1,0 +1,56 @@
+{% extends 'MinsalsifdaBundle::layoutSolicitante.html.twig' %}
+
+{% block contenido_in %}
+    <center><h3>Grado de Avance de una Orden de Trabajo</h3></center>
+<table id="tabla" class="table table-bordered table-hover table-condensed">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ solicitud.id }}</td>
+            </tr>
+            <tr>
+                <th>Descripcion</th>
+                <td>{{ solicitud.descripcion }}</td>
+            </tr>
+            <tr>
+                <th>Fecharecepcion</th>
+                <td>{{ solicitud.fechaRecepcion|date('Y-m-d H:i:s') }}</td>
+            </tr>
+            <tr>
+                <th>Fecharequiere</th>
+                <td>{{ solicitud.fechaRequiere|date('Y-m-d H:i:s') }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="tabla" class="table table-bordered table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>Etapa</th>
+                
+                <th>Estado</th>
+                
+                <th>Asignado</th>
+                <th>Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for entity in entities %}
+            <tr>
+                <td>{{ entity.dscciclovida }}</td>
+                
+                <td>{{ entity.dscestado }}</td>
+                
+                <td>{{ entity.nomempleado }}</td>
+                <td>
+                <ul>
+                    <li>
+                        <a href="{{ path('sifda_vwetapassolicitud_show', { 'id': entity.id }) }}">Mostrar</a>
+                    </li>
+                </ul>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% endblock %}
