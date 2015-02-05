@@ -93,9 +93,44 @@ class Vwetapassolicitud {
     /**
      * @var integer
      *
-     * @ORM\Column(name="peso", type="integer", nullable=false)
+     * @ORM\Column(name="etapa_peso", type="integer", nullable=false)
      */
-    private $peso;
+    private $etapaPeso;
+    
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="ignorar_sig_etapa", type="boolean", nullable=false)
+     */
+    private $ignorarSigEtapa;
+    
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="id_subetapa", type="integer", nullable=true)
+     */
+    private $idSubetapa;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="dsc_subetapa", type="string", length=100, nullable=true)
+     */
+    private $dscSubetapa;
+    
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="subetapa_peso", type="integer", nullable=false)
+     */
+    private $subetapaPeso;
+    
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="ignorar_sig_subetapa", type="boolean", nullable=false)
+     */
+    private $ignorarSigSubetapa;
     
     /**
      * @var integer
@@ -198,10 +233,30 @@ class Vwetapassolicitud {
         return $this->dscCicloVida;
     }
 
-    public function getPeso() {
-        return $this->peso;
+    public function getEtapaPeso() {
+        return $this->etapaPeso;
     }
-
+    
+    public function getIgnorarSigEtapa() {
+        return $this->ignorarSigEtapa;
+    }
+    
+    public function getIdSubetapa() {
+        return $this->idSubetapa;
+    }
+    
+    public function getDscSubetapa() {
+        return $this->dscSubetapa;
+    }
+    
+    public function getSubetapaPeso() {
+        return $this->subetapaPeso;
+    }
+    
+    public function getIgnorarSigSubetapa() {
+        return $this->ignorarSigSubetapa;
+    }
+    
     public function getIdOrden() {
         return $this->idOrden;
     }
@@ -278,10 +333,18 @@ class Vwetapassolicitud {
         $this->dscCicloVida = $dscCicloVida;
     }
 
-    public function setPeso($peso) {
-        $this->peso = $peso;
+    public function setEtapaPeso($etapaPeso) {
+        $this->etapaPeso = $etapaPeso;
     }
 
+    public function setIdSubetapa($idSubetapa) {
+        $this->idSubetapa = $idSubetapa;
+    }
+    
+    public function setDscSubetapa($dscSubetapa) {
+        $this->dscSubetapa = $dscSubetapa;
+    }
+    
     public function setIdOrden($idOrden) {
         $this->idOrden = $idOrden;
     }

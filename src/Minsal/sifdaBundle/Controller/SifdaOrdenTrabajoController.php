@@ -78,13 +78,11 @@ class SifdaOrdenTrabajoController extends Controller
         
         $form->handleRequest($request);
         $parameters = $request->request->all();
-        //ladybug_dump($parameters['idEtapa']);
         foreach($parameters as $p){
             $idDependencia = $p['dependencia'];
             $idEstablecimiento = $p['establecimiento'];
             $idEtapa = $p['idEtapa'];
         }
-        ladybug_dump($p['idEtapa']);
         $idDependenciaEstablecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findOneBy(array(
                                                            'idEstablecimiento' => $idEstablecimiento,
                                                            'idDependencia' => $idDependencia         
@@ -152,41 +150,22 @@ class SifdaOrdenTrabajoController extends Controller
         $em = $this->getDoctrine()->getManager();
         
         /* Se obtiene la informacion del servicio solicitado con sus respectivas etapas            *
-         * y en que estado se encuentran mostrando a la persona asignada a realizar la             *
-         * la orden de trabajo                                                                     */
+         * y subetapas, ademas de obtener en que estado se encuentran y se tiene a la              *
+         * persona responsable de realizar la orden de trabajo                                     */
         $solicitudEtapa = $em->getRepository('MinsalsifdaBundle:Vwetapassolicitud')->findBy(array('idSolicitud'=>$id));
-        //ladybug_dump($solicitudEtapa);
+        
         //Se obtiene la informacion de la solicitud de servicio que se ha seleccionado                             
         $solicitud = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
-        
-        //Se obtienen todas ordenes de trabajo de una determinada solicitud de servicio
-        $dql = "SELECT ot
-                FROM MinsalsifdaBundle:SifdaOrdenTrabajo ot
-                INNER JOIN ot.idSolicitudServicio ss
-                WHERE ss.id = :id";
-        
-        $solicitudOrdenes = $em->createQuery($dql)
-                             ->setParameter(':id', $id)
-                             ->getResult();
-        
-        //Se obtienen las etapas del servicio solicitado
-        $actividad = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findBy(array(
-                                                                            'idTipoServicio' => $solicitud->getIdTipoServicio(),
-                                                                            'idEtapa' => NULL
-                                                                            ));
-        
+        //ladybug_dump($solicitudEtapa);
         $solicitudOrden=array(); 
         
+        //Se obtienen todas las ordenes de trabajo que tiene una determinada solicitud
         foreach ($solicitudEtapa as $value) {
-            //ladybug_dump($value->getIdOrden());
             if(!is_null($value->getIdOrden())){
                 $solicitudOrden[] = $value->getIdOrden();
             }
-            
-            
         }
         
-        //ladybug_dump($solicitudOrden);
         //Si la solicitud de servicio no tiene ordenes de trabajo registradas
         if(!$solicitudOrden){
             
@@ -201,6 +180,48 @@ class SifdaOrdenTrabajoController extends Controller
                             ->where('rcv.idTipoServicio = :tiposervicio')
                             ->andWhere('rcv.idEtapa IS NULL')
                             ->andWhere('rcv.jerarquia = 1')
+                            ->setParameter(':tiposervicio', $solicitud->getIdTipoServicio());
+                    }));
+            
+            $servicioSubetapa=array();         
+            $subetapajerarquia=array();         
+            
+            //Se obtienen todas las subetapas del servicio que se esta atendiendo
+            foreach ($solicitudEtapa as $value) {
+                if(!is_null($value->getIdSubetapa())){
+                    $servicioSubetapa[] = $value->getIdSubetapa();
+                    $subetapajerarquia[] = $value->getJerarCicloVida();
+                }
+            }       
+            
+            //Si la etapa del tipo de servicio tiene subetapas        
+            if ($servicioSubetapa){ 
+                
+                //Se agrega un tipo de campo de la subetapa sin asignar
+                $form->add('idSubEtapa', 'entity', array(
+                            'label'         =>  'Subactividad a realizar',
+                            'class'         =>  'MinsalsifdaBundle:SifdaRutaCicloVida',
+                            'empty_value'=>'Seleccione una subactividad',
+                            'mapped' => false,
+                            'choices' => array()
+                        ));
+              }
+        }
+        //Si a la solicitud de servicio se le han creado ordenes de trabajo
+        elseif($solicitudOrden) {
+            
+            
+            
+            $form->add('idEtapa', 'entity', array(
+                        'label'         =>  'Actividad a realizar',
+                        'empty_value'=>'Seleccione una actividad',
+                        'class'         =>  'MinsalsifdaBundle:SifdaRutaCicloVida',
+                        'query_builder' =>  function(EntityRepository $repositorio) use ( $solicitud ){
+                    return $repositorio
+                            ->createQueryBuilder('rcv')
+                            ->where('rcv.idTipoServicio = :tiposervicio')
+                            ->andWhere('rcv.idEtapa IS NULL')
+                            //->andWhere('rcv.jerarquia = 1')
                             ->setParameter(':tiposervicio', $solicitud->getIdTipoServicio());
                     }));
             
@@ -223,11 +244,6 @@ class SifdaOrdenTrabajoController extends Controller
                             'mapped' => false,
                             'choices' => array()
                         ));
-            //  }
-        }
-        //Si a la solicitud de servicio se le han creado ordenes de trabajo
-        elseif($solicitudOrden) {
-            
             
             
         }        
@@ -249,11 +265,23 @@ class SifdaOrdenTrabajoController extends Controller
         if ($id != 0) {
            $em = $this->getDoctrine()->getManager();
            $solicitud = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
-        
+           
            if (!$solicitud) {
                 throw $this->createNotFoundException('Unable to find SifdaOrdenTrabajo entity.');
             }
-            
+           
+           /* Se obtiene la informacion del servicio solicitado con sus respectivas etapas            *
+            * y subetapas, ademas de obtener en que estado se encuentran y se tiene a la              *
+            * persona responsable de realizar la orden de trabajo                                     */
+           $solicitudEtapa = $em->getRepository('MinsalsifdaBundle:Vwetapassolicitud')->findBy(array('idSolicitud'=>$id));
+        }
+        
+        $servicioSubetapa=array();         
+        
+        foreach ($solicitudEtapa as $value) {
+            if(!is_null($value->getIdSubetapa())){
+                $servicioSubetapa[] = $value->getIdSubetapa();
+            }
         }
         
         $empleados = $em->getRepository('MinsalsifdaBundle:CtlEmpleado')->findAll();
@@ -262,6 +290,8 @@ class SifdaOrdenTrabajoController extends Controller
         return array(
             'entity' => $entity,
             'solicitud' => $solicitud,
+            'solicitudEtapa' => $solicitudEtapa,
+            'servicioSubetapa' => $servicioSubetapa,
             'empleados' => $empleados,
             'form'      => $form->createView(),
             'errors'    => null

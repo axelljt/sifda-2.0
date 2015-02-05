@@ -57,7 +57,9 @@
                     </div>
                     <div class="span5 offset1"> 
                         {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
-                       {# {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}#}
+                        {% if servicioSubetapa %}
+                        {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}
+                        {% endif %}
                         {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
                         {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
                     </div>
