@@ -1,0 +1,48 @@
+{% extends 'MinsalsifdaBundle::layoutResponsable.html.twig' %}
+{% block contenido_in %}
+   <div id="seleccion">
+        <div class="row-fluid">
+            <div class="span11 offset1">
+                
+                <div class="span3">
+                    
+                </div>
+                
+                <div class="span6">
+                    
+                    <table id="pao">
+                        <tr>
+                            <td><label><strong>A&ntildeo PAO:</strong></label></td>
+                            <td></td><td></td>
+                            <td>
+                                <div class="btn-group">
+                                      <select id="cmb1" name="ComboEstado"  class="btn dropdown-toggle" style="width: 200px">
+                                         <option value="0">Seleccione A&ntildeo</option>
+
+                                           {#{% for e in establecimiento %}
+
+                                            <option value="{{e.id}}">{{e.nombre}}</option>
+                                           {% endfor %}   #}
+                                     </select>
+                                 </div>
+                            </td>
+                            <td></td><td></td>
+                            <td><input type="submit" class="btn btn-primary" id="btnPao" value="Cargar " name="Cargar PAO"></td>
+                        </tr>
+                    </table>
+                    
+                    
+                </div>
+                
+                <div class="span2">
+                    
+                </div>
+                
+            </div>
+    
+    
+    
+{% endblock %}
+{% block javascripts_step %}
+   
+{% endblock %} 

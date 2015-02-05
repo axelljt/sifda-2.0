@@ -60,4 +60,19 @@ class VwetapassolicitudController extends Controller
             'entity'      => $entity,
         );
     }
+    
+    /**
+     * Lists all Vwetapassolicitud entities.
+     *
+     * @Route("/prueba/index", name="sifda_prueba")
+     * @Method("GET")
+     * @Template()
+     */
+    public function pruebaAction()
+    {
+        return $this->render('MinsalsifdaBundle:Vwetapassolicitud:prueba.html.twig');
+        
+        
+    }
 }
+        

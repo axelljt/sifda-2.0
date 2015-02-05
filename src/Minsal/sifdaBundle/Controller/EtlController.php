@@ -61,39 +61,41 @@ class EtlController extends Controller{
             foreach ($lstTiposServicio as $tipoServicio) {
 //            $tipoServicio = new SifdaTipoServicio();
                 $solicitud = new SifdaSolicitudServicio();
-                $actividadPAO = new \Minsal\sifdaBundle\Entity\SidplaActividad();
+//                $actividadPAO = new \Minsal\sifdaBundle\Entity\SidplaActividad();
                 $actividadPAO = $tipoServicio->getIdActividad();
-                $solicitud->setIdDependenciaEstablecimiento($objDepEst);
-                $solicitud->setDescripcion($tipoServicio->getDescripcion());
-                $solicitud->setFechaRecepcion(new \DateTime());
-                $objMedioSolicita = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(6);
-                $solicitud->setIdMedioSolicita($objMedioSolicita);
-                $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(2);
-                $solicitud->setIdEstado($objEstado);
-                $solicitud->setIdTipoServicio($tipoServicio);
-                $em->persist($solicitud);
-                $em->flush();
-                $lstCicloVida = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findBy(array('idTipoServicio' => $tipoServicio->getId(), 'jerarquia' => 1, 'idEtapa' => null));
-                foreach ($lstCicloVida as $etapa) {
-//                $etapa = new \Minsal\sifdaBundle\Entity\SifdaRutaCicloVida();
-                    $orden = new SifdaOrdenTrabajo();
-                    $orden->setIdEtapa($etapa->getId());
-                    $orden->setDescripcion($etapa->getDescripcion());
-                    $orden->setCodigo($this->generarCodigoOrden($objDepEst));
-                    $orden->setFechaCreacion(new \DateTime());
-                    $orden->setIdDependenciaEstablecimiento($objDepEst);
-                    $orden->setIdEstado($objEstado);
-                    $orden->setIdSolicitudServicio($solicitud);
-                    $objPrioridad = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(9);
-                    $orden->setIdPrioridad($objPrioridad);
-                    $em->persist($orden);
+                if ($actividadPAO->getIdLineaEstrategica()->getRecurrente()) {
+                    $solicitud->setIdDependenciaEstablecimiento($objDepEst);
+                    $solicitud->setDescripcion($tipoServicio->getDescripcion());
+                    $solicitud->setFechaRecepcion(new \DateTime());
+                    $objMedioSolicita = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(6);
+                    $solicitud->setIdMedioSolicita($objMedioSolicita);
+                    $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(2);
+                    $solicitud->setIdEstado($objEstado);
+                    $solicitud->setIdTipoServicio($tipoServicio);
+                    $em->persist($solicitud);
                     $em->flush();
-                    $equipo = new \Minsal\sifdaBundle\Entity\SifdaEquipoTrabajo();
-                    $equipo->setIdOrdenTrabajo($orden);
-                    $equipo->setIdEmpleado($actividadPAO->getIdEmpleado());
-                    $equipo->setResponsableEquipo(true);
-                    $em->persist($equipo);
-                    $em->flush();
+                    $lstCicloVida = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findBy(array('idTipoServicio' => $tipoServicio->getId(), 'jerarquia' => 1, 'idEtapa' => null));
+                    foreach ($lstCicloVida as $etapa) {
+//                      $etapa = new \Minsal\sifdaBundle\Entity\SifdaRutaCicloVida();
+                        $orden = new SifdaOrdenTrabajo();
+                        $orden->setIdEtapa($etapa->getId());
+                        $orden->setDescripcion($etapa->getDescripcion());
+                        $orden->setCodigo($this->generarCodigoOrden($objDepEst));
+                        $orden->setFechaCreacion(new \DateTime());
+                        $orden->setIdDependenciaEstablecimiento($objDepEst);
+                        $orden->setIdEstado($objEstado);
+                        $orden->setIdSolicitudServicio($solicitud);
+                        $objPrioridad = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(9);
+                        $orden->setIdPrioridad($objPrioridad);
+                        $em->persist($orden);
+                        $em->flush();
+                        $equipo = new \Minsal\sifdaBundle\Entity\SifdaEquipoTrabajo();
+                        $equipo->setIdOrdenTrabajo($orden);
+                        $equipo->setIdEmpleado($actividadPAO->getIdEmpleado());
+                        $equipo->setResponsableEquipo(true);
+                        $em->persist($equipo);
+                        $em->flush();
+                    }
                 }
             }
 

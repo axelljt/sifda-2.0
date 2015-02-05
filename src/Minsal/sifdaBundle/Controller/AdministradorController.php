@@ -280,4 +280,17 @@ class AdministradorController extends Controller
             ->getForm()
         ;
     }
+    
+    /**
+     * Lists all SidplaLineaEstrategica entities.
+     *
+     * @Route("/cargarPao", name="sifda_responsable_cargar_pao")
+     * @Method("GET")
+     * @Template()
+     */
+    public function PaoAction() {
+
+        return $this->render('MinsalsifdaBundle:Administrador:PAO.html.twig');
+    }
+
 }

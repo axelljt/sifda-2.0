@@ -9,12 +9,12 @@
                 <td>{{ solicitud.descripcion }}</td>
             </tr>
             <tr>
-                <th>Fecha de recepcion</th>
-                <td>{{ solicitud.fechaRecepcion|date('Y-m-d H:i:s') }}</td>
+                <th>Fecharecepcion</th>
+                <td>{{ solicitud.fechaRecepcion is empty ? "No tiene fecha asignada." : solicitud.fechaRequiere|date("Y-m-d H:i:s") }}</td>
             </tr>
             <tr>
-                <th>Fecha que se requiere</th>
-                <td>{{ solicitud.fechaRequiere|date('Y-m-d H:i:s') }}</td>
+                <th>Fecharequiere</th>
+                <td>{{ solicitud.fechaRequiere is empty ? "No tiene fecha asignada." : solicitud.fechaRequiere|date("Y-m-d H:i:s")}}</td>
             </tr>
         </tbody>
     </table>
