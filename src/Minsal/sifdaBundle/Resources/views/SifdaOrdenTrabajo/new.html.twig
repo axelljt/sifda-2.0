@@ -12,8 +12,7 @@
 {% endblock %}
 
 {% block contenido_in -%}
-        {{form_start(form)}}
-    {{form_errors(form)}}     
+            
         <div class="page-header">
             <center><h3>Crear la orden de trabajo</h3></center>
         </div>
@@ -47,25 +46,74 @@
             </div>
                         
                 <br>
-                      
-                <div class="row-fluid">
-                    <div class="span4 offset2">
-                        {{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
-                        {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}
-                        {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
-                        {{form_row(form.idPrioridad)}}
+                {# Si la solicitud de servicio tiene ordenes de trabajo generadas #}
+                {% if solicitudOrden %}
+                    
+                    {# Si la orden de trabajo actual ha finalizado #}
+                    {% if ordenActual.dscestado == 'Finalizado' %}
+                        {{form_start(form)}}
+                        {{form_errors(form)}} 
+                        <div class="row-fluid">
+                            <div class="span4 offset2">
+                                {{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
+                                {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}
+                                {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
+                                {{form_row(form.idPrioridad)}}
+                            </div>
+                            <div class="span5 offset1"> 
+                                {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
+                                {% if subetapaEtapa %}
+                                    {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}
+                                {% endif %}
+                                {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
+                                {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
+                            </div>
+                        </div>
+                        <br><br>
+                        <div class="row-fluid">    
+                            <div class="span12">
+                            <br>
+                            <center>
+                                <table id="botones">
+                                <tr> 
+                                   <td>{{form_row(form.submit,{'attr':{'class':'btn btn-primary'}})}}</td>
+                                   <td><a href="{{ path('sifda_gestionSolicitudes') }}" class="btn">Regresar</a>
+                                    </td>
+                                </tr>    
+                                </table>
+                            </center>
+                            <br>
+                            </div>
+                        </div>
+                        {{form_end(form)}}      
+                        
+                     {# Si la orden de trabajo actual no ha finalizado #}   
+                    {% else%}  
+                        <center><h4>No se puede generar una nueva orden de trabajo porque la actividad {{ ordenActual.dscciclovida }} no ha finalizado</h4></center>
+                    {% endif %}          
+                    
+                {# Si la solicitud de servicio no tiene ordenes de trabajo generadas #}    
+                {% else%}  
+                    {{form_start(form)}}
+                    {{form_errors(form)}} 
+                    <div class="row-fluid">
+                        <div class="span4 offset2">
+                            {{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
+                            {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}
+                            {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
+                            {{form_row(form.idPrioridad)}}
+                        </div>
+                        <div class="span5 offset1"> 
+                            {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
+                            {% if servicioSubetapa %}
+                                {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}
+                            {% endif %}
+                            {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
+                            {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
+                        </div>
                     </div>
-                    <div class="span5 offset1"> 
-                        {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
-                        {% if servicioSubetapa %}
-                        {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}
-                        {% endif %}
-                        {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
-                        {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
-                    </div>
-                </div>
-            	<br><br>
-		<div class="row-fluid">    
+                    <br><br>
+                    <div class="row-fluid">    
                         <div class="span12">
                         <br>
                         <center>
@@ -80,9 +128,11 @@
                         <br>
                         </div>
                     </div>
+                    {{form_end(form)}}
+                {% endif %}                
             </div>
-        </div>
-    {{form_end(form)}}        
+        </div> 
+                {{ ordenActualId }}
 {% endblock %}
 
 {% block javascripts_step %}
@@ -95,6 +145,7 @@
         $("#minsal_sifdabundle_sifdaordentrabajo_idEtapa").change(function(){ 
 
             var idEtapa = $("#minsal_sifdabundle_sifdaordentrabajo_idEtapa").val();
+            var ordenActualId = {{ ordenActualId }};
            // idEtapa = idEtapa;
             //alert(idEtapa);
 ;            if(idEtapa !="")
@@ -103,11 +154,13 @@
                 $.post(
                 '{{path('sifda_sifdaordentrabajo_find_subetapa')}}', 
                   { 
-                    idEtapa:idEtapa
+                    idEtapa:idEtapa,
+                    ordenActualId:ordenActualId
                   }
+                  //alert(ordenActualId);
                   , function( data ) {
                     console.log( data );
-                    //alert(data);
+                    alert(ordenActualId);
                         $("#minsal_sifdabundle_sifdaordentrabajo_idSubEtapa").html(data);
 
                  }, "json");
@@ -142,9 +195,7 @@
              }, "json");
         });
     });    
-        
-        
-        
+
         $.datepicker.regional['es'] = {
 			 closeText: 'Cerrar',
 			 prevText: '<Ant',

@@ -126,6 +126,14 @@ class Vwetapassolicitud {
     private $subetapaPeso;
     
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="jerarquia_subetapa", type="integer", nullable=false)
+     */
+    private $jerarquiaSubetapa;
+    
+    
+    /**
      * @var boolean
      *
      * @ORM\Column(name="ignorar_sig_subetapa", type="boolean", nullable=false)
@@ -253,6 +261,10 @@ class Vwetapassolicitud {
         return $this->subetapaPeso;
     }
     
+    public function getJerarquiaSubetapa() {
+        return $this->jerarquiaSubetapa;
+    }
+    
     public function getIgnorarSigSubetapa() {
         return $this->ignorarSigSubetapa;
     }
@@ -343,6 +355,10 @@ class Vwetapassolicitud {
     
     public function setDscSubetapa($dscSubetapa) {
         $this->dscSubetapa = $dscSubetapa;
+    }
+    
+    public function setJerarquiaSubetapa($jerarquiaSubetapa) {
+        $this->jerarquiaSubetapa = $jerarquiaSubetapa;
     }
     
     public function setIdOrden($idOrden) {

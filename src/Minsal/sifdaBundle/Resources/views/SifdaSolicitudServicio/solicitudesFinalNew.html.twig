@@ -1,0 +1,21 @@
+{% extends 'MinsalsifdaBundle::layoutResponsable.html.twig' %}
+
+{% block contenido_in  %}
+    
+    
+    <div>
+        Fecha del sistema: {{ "now"|date("d/m/Y") }} usuario:{{usuario.username}} 
+        <center><h3>Solicitudes Finalizadas </h3></center>
+    
+    </div>    
+        
+ {% endblock%}       
+{% block javascripts_step %}
+    {{ parent() }}
+    
+    <script>
+        
+        
+        
+    </script>
+{%endblock%}

@@ -59,12 +59,7 @@ class SifdaRutaCicloVidaController extends Controller
                . "FROM MinsalsifdaBundle:SifdaRutaCicloVida e "
                . "WHERE e.idTipoServicio = :tiposervicio "
                . "AND e.idEtapa IS NULL ";
-        
-                 
-//        $balance = $em->createQuery($dql)
-//              ->setParameter(1, $myAccountId)
-//              ->getSingleScalarResult();
-        
+    
         if ($form->isValid()) {
             // si se ha hecho click al boton submit_and_add 
             if ($form->get('submit_and_add')->isClicked()) {

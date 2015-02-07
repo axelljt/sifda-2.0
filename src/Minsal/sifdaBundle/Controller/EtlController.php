@@ -13,9 +13,11 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use \Minsal\sifdaBundle\Entity\SifdaTipoServicio;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use \Minsal\sifdaBundle\Entity\SifdaSolicitudServicio;
 use \Minsal\sifdaBundle\Entity\SifdaOrdenTrabajo;
 use Doctrine\ORM\Query\ResultSetMapping;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Description of EtlController
@@ -30,40 +32,54 @@ class EtlController extends Controller{
     /**
      * Ejecucion del procedimiento de importacion de datos de PAO.
      *
-     * @Route("/pao/{anio}", name="sifda_cargar_pao")
-     * @Method("GET")
+     * @Route("/pao", name="sifda_cargar_pao")
+     * 
      */
-    public function cargarPAOAction($anio)
+    public function cargarPAOAction()
     {
+        $anio = $this->get('request')->request->get('anio');
+//        if ($anio == "0"){
+//            return new Response('0');
+//        }
+        $anio = 2014;
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('resultado','resultado');
-        $anio = 2015;
+//        $anio = 2014;
         $em = $this->getDoctrine()->getEntityManager();
         $sql = "SELECT cargar_data_sidpla(?) as resultado;";
         $query = $em->createNativeQuery($sql, $rsm);
         $query ->setParameter(1, $anio);
         $resultado = $query->getResult();
         $bool = $resultado[0];
-        return $this->redirect($this->generateUrl('sifda_ordentrabajo', array('resultado' => $bool)));
+        if ($bool['resultado'] ) {
+            return new Response('1');
+        } else {
+            return new Response('2');
+            }
+        
     }
     
     /**
      * Ejecucion del procedimiento de Generacion automatica de ordenes y solicitudes.
      *
-     * @Route("/paoSolOrd/{depest}", name="cargar_solicitudes_pao")
-     * @Method("GET")
+     * @Route("/paoSolOrd", name="cargar_solicitudes_pao")
+     * 
      */
-    public function cargarSoliOrdenAction($depest) {
+    public function cargarSoliOrdenAction() {
         try {
+            $depest = $this->get('request')->request->get('idDependenciaEstablecimiento');
             $em = $this->getDoctrine()->getManager();
             $objDepEst = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->find($depest);
             $lstTiposServicio = $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento' => $objDepEst->getId()));
+            $nSol = 0;
+            $nOr = 0;
+            $nEq = 0;
             foreach ($lstTiposServicio as $tipoServicio) {
 //            $tipoServicio = new SifdaTipoServicio();
                 $solicitud = new SifdaSolicitudServicio();
-//                $actividadPAO = new \Minsal\sifdaBundle\Entity\SidplaActividad();
+               $actividadPAO = new \Minsal\sifdaBundle\Entity\SidplaActividad();
                 $actividadPAO = $tipoServicio->getIdActividad();
-                if ($actividadPAO->getIdLineaEstrategica()->getRecurrente()) {
+                if ($actividadPAO->getIdLineaEstrategica()->getRecurrente() && !$actividadPAO->getEsGenerado()) {
                     $solicitud->setIdDependenciaEstablecimiento($objDepEst);
                     $solicitud->setDescripcion($tipoServicio->getDescripcion());
                     $solicitud->setFechaRecepcion(new \DateTime());
@@ -72,7 +88,11 @@ class EtlController extends Controller{
                     $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(2);
                     $solicitud->setIdEstado($objEstado);
                     $solicitud->setIdTipoServicio($tipoServicio);
+                    $sol = $solicitud;
+                    $nSol++;
                     $em->persist($solicitud);
+                    $actividadPAO->setEsGenerado(true);
+                    $em->merge($actividadPAO);
                     $em->flush();
                     $lstCicloVida = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->findBy(array('idTipoServicio' => $tipoServicio->getId(), 'jerarquia' => 1, 'idEtapa' => null));
                     foreach ($lstCicloVida as $etapa) {
@@ -87,19 +107,30 @@ class EtlController extends Controller{
                         $orden->setIdSolicitudServicio($solicitud);
                         $objPrioridad = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(9);
                         $orden->setIdPrioridad($objPrioridad);
+                        $nOr++;
                         $em->persist($orden);
                         $em->flush();
                         $equipo = new \Minsal\sifdaBundle\Entity\SifdaEquipoTrabajo();
                         $equipo->setIdOrdenTrabajo($orden);
                         $equipo->setIdEmpleado($actividadPAO->getIdEmpleado());
                         $equipo->setResponsableEquipo(true);
+                        $nEq++;
                         $em->persist($equipo);
                         $em->flush();
+                        
                     }
                 }
             }
-
-            return $this->redirect($this->generateUrl('sifda_ordentrabajo'));
+            $sol = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find(1);
+            $solArray = (Array)$sol;
+            $response = new JsonResponse();
+            $response->setData(array(
+            'msg' => "Se genero la siguiente data <br>"
+                ."Numero Solicitudes: ".$nSol."<br>"
+                ."Numero de Ordenes: ".$nOr."<br>"
+                ."Numero de Equipo: ".$nEq
+                    ));
+            return $response;
         } catch (Exception $ex) {
             $ex;
             $ex;
@@ -152,5 +183,5 @@ class EtlController extends Controller{
     }
     
     
+    
     }
-

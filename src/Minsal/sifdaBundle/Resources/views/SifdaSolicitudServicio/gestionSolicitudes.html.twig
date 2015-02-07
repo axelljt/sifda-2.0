@@ -40,7 +40,7 @@
                     
                     
                              
-                <div class="span3">
+                <div class="span4">
                  <table>
                             <tr>
                                 <td>
@@ -73,11 +73,11 @@
                 </div>
                 
                             
-                <div class="span5">
+                <div class="span3">
                     
                 
                   <table id="combos">
-                      <tr>
+                {#      <tr>
                           <td>
                               <label>Establecimiento:</label>
                           </td>
@@ -99,8 +99,8 @@
                             </td>
                           
                        </tr>
-                                          
-                      <tr><td></td></tr>
+                                         #} 
+                     {# <tr><td></td></tr>
                       <tr><td></td></tr>
                       <tr><td></td></tr>
                       <tr><td></td></tr>
@@ -111,38 +111,34 @@
                           
                             <td>
                                 <div class="btn-group">
-                                    <select id="cmb2" name="ComboEstado"  class="btn dropdown-toggle" style="width: 250px">
+                                    <select id="cmb2" name="ComboEstado"  class="btn dropdown-toggle" style="width: 250px">#}
                                     {#<option value="0">Seleccione Dependencia</option> #}
                                     {#{% for estado in estados%}#}
                                
-                                        <option value="0">Seleccione una dependencia</option>
+                                        {#<option value="0">Seleccione una dependencia</option>#}
                                      {#{% endfor %}   #}
-                                    </select>
+                               {#     </select>
                                </div>
                             </td>
-                      </tr>
+                      </tr>#}
                       
                       
+                      {#<tr><td></td></tr>
                       <tr><td></td></tr>
                       <tr><td></td></tr>
-                      <tr><td></td></tr>
-                      <tr><td></td></tr>
+                      <tr><td></td></tr>#}
                     
                       <tr>
-                          <td>
-                              <label>TipoServicio:</label>
-                          </td>
-                          
-                            <td>
-                                <div class="btn-group">
-                                    <select id="cmb3" name="ComboEstado"  class="btn dropdown-toggle" style="width: 250px">
-                                     {#{% for estado in estados%}#}
+                          <div class="btn-group">
+                                    <select id="cmb1" name="ComboEstado"  class="btn dropdown-toggle" style="width: 200px">
+                                     <option value="0">Tipo Servicio</option>
+                                     
+                                     {% for t in tiposervicio %}
                                
-                                        <option value="0">Seleccione un tipo de servicio</option>
-                                     {#{% endfor %}   #}
+                                        <option value="{{t.id}}">{{t.nombre}}</option>
+                                     {% endfor %}   
                                     </select>
                                </div>
-                            </td>
                             
                           
                            
@@ -152,7 +148,7 @@
                     
                                    
                 </div>
-                <div class="span3">
+                <div class="span4">
                     <table id="fechas">
                                     <tr>
                                         <td><label>FechaInicio: </label></td>
@@ -271,7 +267,7 @@
                 {% endif %}
                
      <br/>           
-                {% if entities%}
+    {% if entities%}
     <table id="tabla" class="table table-bordered table-hover table-condensed">
         <thead>
             <tr>
@@ -313,6 +309,10 @@
                         <input type="hidden" id="txt{{ loop.index }}"  value="{{entity.id}}">#}
                         <a  href="{{ path('sifda_solicitudservicio_rechazo', { 'id': entity.id }) }} ">Rechazar solicitud de servicio</a>
                         
+                    </li>
+                    
+                    <li>
+                        <a  href="{{ path('sifda_solicitudservicio_finalizar', { 'id': entity.id }) }} ">Finalizar solicitud de servicio</a>
                     </li>
                     <li>                        
                         <a  href="{{ path('sifda_reprogramacion_servicio_new', { 'id': entity.id }) }} ">Reprogramar solicitud de servicio</a>
@@ -375,7 +375,7 @@
         {% endfor %}
         </tbody>
     </table>
-        
+        x
     {% else %}
         <div id="msgAsignados">
             <center><h4>No se encontraron solicitudes Asignadas</h4></center>
@@ -458,14 +458,14 @@
       document.getElementById('fechaInicio').readOnly=true;
       document.getElementById('fechaFin').readOnly=true;
       $('#fechas').hide("slow");
-      $('#combos').hide("slow");
+      $('#cmb1').hide("slow");
       
       
       
            
      {#document.getElementById("minsal_sifdabundle_sifdasolicitudservicio_establecimiento").value="";#}
                 
-        $("#cmb1").change(function(){ 
+        {#$("#cmb1").change(function(){ 
 
             var IdEstablecimiento = $("#cmb1").val();
 
@@ -501,9 +501,9 @@
 
                  }, "json");  
             }
-        });
+        });#}
         
-        $("#cmb2").change(function(){
+        {#$("#cmb2").change(function(){
             var IdDependencia = $("#cmb2").val();
            
             if(IdDependencia !="")
@@ -530,7 +530,7 @@
                      }, "json");                
                  
              }
-        });
+        });#}
       
      {#  $('#AsigTabla').hide("slow");
        $('#RechTabla').hide("slow"); 
@@ -547,7 +547,7 @@
             
            {# $("#btn1").show("slow");#}
             $("#fechas").hide("slow");
-            $("#combos").hide("slow");
+            $("#cmb1").hide("slow");
             $('#tabla').show("slow");
             $('#rangoTabla').hide("slow");
           });
@@ -557,7 +557,7 @@
                 {#$("#btn1").hide("slow");#}
                 $("#tabla").hide("slow");
                 $("#fechas").show("slow");
-                $("#combos").show("slow");
+                $("#cmb1").show("slow");
                 $('#rangoTabla').show("slow");
                 {#$('#msgIngresados').hide("slow");
                 $('#msgRechazados').hide("slow");
@@ -569,9 +569,9 @@
                   
               var fechaInicio=$("#fechaInicio").val();
               var fechaFin=$("#fechaFin").val();
-              var tipoServicio=$("#cmb3").val();
+              var tipoServicio=$("#cmb1").val();
               
-             
+             alert(tipoServicio);
               
             if(fechaFin !="" && fechaInicio!="" && tipoServicio!="0"){
                   

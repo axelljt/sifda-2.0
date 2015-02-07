@@ -91,6 +91,12 @@ class SidplaActividad
      */
     private $idLineaEstrategica;
 
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="generado", type="boolean")
+     */
+    private $esGenerado;
 
 
     /**
@@ -309,8 +315,15 @@ class SidplaActividad
     {
         return $this->idLineaEstrategica;
     }
-    
-     public function __toString() 
+    public function getEsGenerado() {
+        return $this->esGenerado;
+    }
+
+    public function setEsGenerado($esGenerado) {
+        $this->esGenerado = $esGenerado;
+    }
+
+         public function __toString() 
     {
         return $this->descripcion;
     }

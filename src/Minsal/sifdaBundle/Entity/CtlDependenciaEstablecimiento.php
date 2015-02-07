@@ -193,8 +193,9 @@ class CtlDependenciaEstablecimiento
         return $this->idEstablecimiento;
     }
     
+    
      public function __toString() 
    {
-        return (string)$this->abreviatura;
+        return $this->id.' - '.$this->idDependencia->getNombre().'('.$this->abreviatura.')';
     }
 }

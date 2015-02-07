@@ -30,7 +30,8 @@ class SifdaSolicitudServicioController extends Controller
     
     public function redirectAction()
     {
-        return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:FormEmail.html.twig');
+        return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:FormEmail.html.twig');     
+        
     }
   
     
@@ -51,7 +52,7 @@ class SifdaSolicitudServicioController extends Controller
             
 //                $texto = $this->get('request')->request->get('texto');
 //		$id=$this->get('request')->request->get('id');
-        
+       
         $correos=array('axelljt@gmail.com','karensita8421@gmail.com','anthony.huezo@gmail.com');
        
         foreach ($correos as $correo){
@@ -77,11 +78,6 @@ class SifdaSolicitudServicioController extends Controller
 //       }
             
              
-       
-            
-           
-        
-        
          return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:SendEmail.html.twig');
      }
 //   }
@@ -149,7 +145,7 @@ class SifdaSolicitudServicioController extends Controller
         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
 
         $establecimiento= $em->getRepository('MinsalsifdaBundle:CtlEstablecimiento')->findAll();
-        
+        $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
         
         $objEstado1 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(1);
         $ingresados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
@@ -183,10 +179,135 @@ class SifdaSolicitudServicioController extends Controller
             'estados'=> $Estados,
             'usuario'=>$usuario,
             'establecimiento'=>$establecimiento,
+            'tiposervicio'=>$tiposervicio,
         );
+      
+        
     }
     
     
+        /**
+     * Metodo Nuevo que .
+     *
+     * @Route("/solicitudes/ingresadas2", name="sifda_solicitudes_ingresadas2")
+     * @Method("GET")Lista todas las solicitudes de Servicio.
+     * @Template()
+     */
+    
+    public function solicitudesIngNewAction()
+    {
+            
+        $id_usuario=1;
+        $em = $this->getDoctrine()->getManager();
+        
+         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
+         $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
+         
+         $objEstado1 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(1);
+         $ingresados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
+                                                                                    'idEstado' => $objEstado1
+                                                                                ),
+                                                                                   array('fechaRecepcion' => 'DESC')
+                                                                                );
+          
+        return array(
+            'entities' => $ingresados,
+            'usuario'=>$usuario,
+            'establecimiento'=>$tiposervicio,
+        );
+        
+    }
+    
+    
+        /**
+     * Metodo Nuevo que Enlaza la Pantalla de SolicitudesRechazadas.
+     *
+     * @Route("/solicitudes/rechazadas2", name="sifda_solicitudes_rechazadas2")
+     * @Method("GET")Lista todas las solicitudes de Servicio.
+     * @Template()
+     */
+    
+    public function solicitudesRechNewAction()
+    {
+            
+        $id_usuario=1;
+        $em = $this->getDoctrine()->getManager();
+        
+         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
+         $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
+         
+          $objEstado2 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(3);
+        $rechazados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
+                                                                                    'idEstado' => $objEstado2
+                                                                                ),
+                                                                                    array('fechaRecepcion' => 'DESC')
+                                                                                );
+          
+        return array(
+            'entities' => $rechazados,
+            'usuario'=>$usuario,
+            'establecimiento'=>$tiposervicio,
+        );
+        
+    }
+    
+       /**
+     * Metodo Nuevo que Enlaza la Pantalla de Reprogramacion.
+     *
+     * @Route("/solicitudes/reprogromadas", name="sifda_solicitudes_reprogramadas")
+     * @Method("GET")Lista todas las solicitudes de Servicio.
+     * @Template()
+     */
+    
+    public function solicitudesReproNewAction()
+    {
+        
+//        $id_usuario=1;
+//        $em = $this->getDoctrine()->getManager();
+//        
+//         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
+//         
+//         $vista=$em->getRepository('MinsalsifdaBundle:SifdaReprogracionServicio')->findAll();
+        
+        return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesReproNew.html.twig');
+    }
+    
+    
+     /**
+     * Metodo Nuevo que Enlaza la Pantalla de SolicitudesRechazadas.
+     *
+     * @Route("/solicitudes/finalizadas2", name="sifda_solicitudes_fializadas2")
+     * @Method("GET")Lista todas las solicitudes de Servicio.
+     * @Template()
+     */
+    
+    public function solicitudesFinalNewAction()
+    {
+            
+        $id_usuario=1;
+        $em = $this->getDoctrine()->getManager();
+        
+         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
+         
+         $vista=$em->getRepository('MinsalsifdaBundle:Vwetapassolicitud')->findAll();
+         
+         
+         $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
+         
+        $objEstado2 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(4);
+        $finalizadas = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
+                                                                                    'idEstado' => $objEstado2
+                                                                                ),
+                                                                                    array('fechaRecepcion' => 'DESC')
+                                                                                );     
+        return array(
+            'entities' => $finalizadas,
+            'usuario'=>$usuario,
+            'establecimiento'=>$tiposervicio,
+            'vista'=>$vista,
+        );
+        
+    }
     
     
     /**
@@ -208,6 +329,7 @@ class SifdaSolicitudServicioController extends Controller
         }else
             {   return new Response('0');   }       
     }    
+    
     
     
     /**
@@ -242,8 +364,9 @@ class SifdaSolicitudServicioController extends Controller
         if($isAjax){
              $fechaInicio = $this->get('request')->request->get('fechaInicio');
              $fechaFin = $this->get('request')->request->get('fechaFin');
+             $tipoServicio=$this->get('request')->request->get('tipoServicio');
              $em = $this->getDoctrine()->getManager();
-             $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudRechazadas($fechaInicio, $fechaFin);
+             $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudRechazadas($fechaInicio, $fechaFin,$tipoServicio);
              $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesRechShow.html.twig' , array('solicitudes' =>$solicitudes));
              $response = new JsonResponse();
              return $response->setData($mensaje);
@@ -569,6 +692,35 @@ class SifdaSolicitudServicioController extends Controller
     }
     
     
+       
+    /**
+     * Controlador para la busqueda de Informacion de la Solicitud.
+     *
+     * @Route("/buscar_informacion_solicitud/{id}", name="sifda_solicitudservicio_buscar_informacion")
+     * @Method("GET")
+     * @Template()
+     */
+    public function BuscarInfoSolicitudAction($id)
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $solicitud = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
+        
+        if (!$solicitud) {
+            throw $this->createNotFoundException('Solicitud de Servicio con id: '.$id.'No encontrado');
+        }
+        
+        $idestablecimiento=$solicitud->getIdDependenciaEstablecimiento();
+        $establecimiento=$em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($idestablecimiento);
+        
+        
+        return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesIngNewShow.html.twig',
+                array('solicitud'=>$solicitud,
+                        'establecimiento'=>$establecimiento));
+    }
+    
+    
+    
     /*Fin de la prueba recuperar estado*/
 
     
@@ -874,6 +1026,53 @@ class SifdaSolicitudServicioController extends Controller
             
     } 
     
+    
+    /**
+    * Ajax utilizado para buscar rango de fechas
+    *  
+    * @Route("/sifda/finalizacion", name="sifda_solicitudservicio_finalizacion")
+    */
+    
+         public function FinalizacionAction()        
+         {
+             
+             $isAjax = $this->get('Request')->isXMLhttpRequest();
+             if($isAjax){
+                 
+             $id = $this->get('request')->request->get('id');    
+            
+             $res=0;
+             $em = $this->getDoctrine()->getManager();
+             $entity = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
+             
+                if (!$entity) {
+                     throw $this->createNotFoundException('No encontre la Entidad.');
+                }
+            
+            $estado=$entity->getIdEstado()->getId();
+            if($estado!=4)
+                {
+                    $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(4);   
+                if (!$objEstado) {
+                    throw $this->createNotFoundException('No encontre el Estado.');
+                }
+
+                    $entity->setIdEstado($objEstado);
+                    $em->merge($entity);
+                    $em->flush();
+
+                    return new Response('1');       
+               }
+            else {
+                    return new Response('0');
+                }
+                
+
+                
+         }//Fin del Ajax
+    
+      }
+    
     /**
      * Deletes a SifdaSolicitudServicio entity.
      ** @Method("GET")
@@ -893,6 +1092,28 @@ class SifdaSolicitudServicioController extends Controller
 
               
         return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:Rechazo.html.twig',array('entity'=>$entity));
+    }
+    
+    
+    /**
+     * Deletes a SifdaSolicitudServicio entity.
+     ** @Method("GET")
+     * @Route("/finalizar/{id}", name="sifda_solicitudservicio_finalizar")
+     
+     */
+    
+    public function FinalizarAction($id){
+        
+        $em = $this->getDoctrine()->getManager();
+        $entity = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
+        
+        
+        if (!$entity) {
+            throw $this->createNotFoundException('Unable to find SifdaSolicitudServicio entity.');
+        }
+
+              
+        return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:Finalizar.html.twig',array('entity'=>$entity));
     }
 
 

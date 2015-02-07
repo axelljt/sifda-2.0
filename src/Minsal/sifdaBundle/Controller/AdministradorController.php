@@ -7,6 +7,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Minsal\sifdaBundle\Entity\SifdaSolicitudServicio;
+use Minsal\sifdaBundle\Form\SifdaSolicitudServicioType;
+use Doctrine\ORM\Query\ResultSetMapping;
 //use Minsal\sifdaBundle\Entity\Catalogo;
 //use Minsal\sifdaBundle\Form\CatalogoType;
 
@@ -28,15 +31,32 @@ class AdministradorController extends Controller
      */
     public function indexAction()
     {
+        $idusuario=1;
         $em = $this->getDoctrine()->getManager();
 
         $entities = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findAll();
+        $usuario= $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($idusuario);
 
+         $estado=1;
+        
+        $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->ContarSolicitudesIngresadas($estado);
+        $solPropiaIngresado = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(['idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento(),'idEstado'=>1]);
+        $nSol = count($solPropiaIngresado);
+        if(!$solicitudes)
+             {
+                throw $this->createNotFoundException('Unable to find SifdaSolicitudServicio entity.');
+             }
+          $valor=  array_shift($solicitudes);
+        
         return array(
             'entities' => $entities,
+            'usuario'=>$usuario,
+            'dependencias'=>$nSol
         );
     }
 
+    
+    
 
     /**
      * Lists all Catalogo entities.
@@ -281,7 +301,7 @@ class AdministradorController extends Controller
         ;
     }
     
-    /**
+   /**
      * Lists all SidplaLineaEstrategica entities.
      *
      * @Route("/cargarPao", name="sifda_responsable_cargar_pao")
@@ -289,8 +309,22 @@ class AdministradorController extends Controller
      * @Template()
      */
     public function PaoAction() {
+        $em = $this->getDoctrine()->getEntityManager();
+        $user = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find(1);
+        
+        $rsm = new ResultSetMapping();
+        $rsm->addScalarResult('resultado','resultado');
+        
+        $sql = "SELECT anios_sin_cargar() AS resultado";
+        $query = $em->createNativeQuery($sql, $rsm);
+//        $query ->setParameter(1, $anio);
+        $resultados = $query->getResult();
+        $bool = null;
 
-        return $this->render('MinsalsifdaBundle:Administrador:PAO.html.twig');
+        return $this->render('MinsalsifdaBundle:Administrador:PAO.html.twig',array('resultados'=>$resultados,'user' => $user));
     }
+    
+    
+    
 
 }

@@ -23,9 +23,9 @@ class SifdaSolicitudServicioRepository extends EntityRepository
     }
     
     /*Repositorio que consulta las solicitudes por rango de fechas*/
-   public function FechaSolicitudRechazadas($fechaInicio, $fechaFin)
+   public function FechaSolicitudRechazadas($fechaInicio, $fechaFin,$tipoServicio)
     {        
-       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion BETWEEN '$fechaInicio' AND '$fechaFin' AND s.idEstado=3 ORDER BY s.fechaRecepcion DESC";	     
+       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion >= '$fechaInicio' AND s.fechaRecepcion <='$fechaFin' AND s.idTipoServicio='$tipoServicio' AND s.idEstado=2 ORDER BY s.fechaRecepcion DESC";	     
        $repositorio = $this->getEntityManager()->createQuery($dql);       
        return $repositorio->getResult();	
     }
@@ -58,6 +58,28 @@ class SifdaSolicitudServicioRepository extends EntityRepository
         $repositorio=$this->getEntityManager()->createQuery($dql);
         return $repositorio->getOneOrNullResult();
             
+    }
+    
+ /*Repositorio que consulta las solicitudes por rango de fechas*/
+    public function FechaSeguimiento($fechaInicio, $fechaFin, $establecimiento, $dependencia, $tipoServicio)
+    {  
+       $em = $this->getDoctrine()->getManager();
+       $establecimientoid = $em->getRepository('MinsalsifdaBundle:CtlEstablecimiento')->find($establecimiento);
+       $dependenciaid = $em->getRepository('MinsalsifdaBundle:CtlDependencia')->find($dependencia);
+       $tipoServicioid = $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->find($tipoServicio);
+            
+       $dql = "SELECT s "
+               . "FROM MinsalsifdaBundle:SifdaSolicitudServicio s "
+               . "INNER JOIN s.userId us "
+               . "INNER JOIN us.idDependenciaEstablecimiento de "
+               . "WHERE s.fechaRecepcion >= '$fechaInicio' "
+               . "AND s.fechaRecepcion <='$fechaFin' "
+               . "AND s.idTipoServicio = '$tipoServicioid' "
+               . "AND de.idDependencia = '$dependenciaid' "
+               . "AND de.idEstablecimiento = '$establecimientoid' "
+               . "ORDER BY s.fechaRecepcion DESC";	     
+       $repositorio = $this->getEntityManager()->createQuery($dql);       
+       return $repositorio->getResult();	
     }
     
     
