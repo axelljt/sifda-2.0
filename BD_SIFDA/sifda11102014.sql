@@ -22,7 +22,87 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
+--
+-- Name: dblink; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS dblink WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION dblink; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION dblink IS 'connect to other PostgreSQL databases from within a database';
+
+
 SET search_path = public, pg_catalog;
+
+--
+-- Name: anios_sin_cargar(); Type: FUNCTION; Schema: public; Owner: sifda
+--
+
+CREATE FUNCTION anios_sin_cargar() RETURNS SETOF integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+EXECUTE 'SELECT dblink_connect(''sidpla'', ''dbname=sidpla'')';
+
+    RETURN QUERY SELECT DISTINCT(anio) FROM dblink('sidpla','SELECT le.anio FROM sidpla_linea_estrategica le ') AS t(anio int) 
+WHERE anio NOT IN (SELECT DISTINCT(le.anio) FROM sidpla_linea_estrategica le) 
+AND anio > (SELECT MAX(le.anio) FROM sidpla_linea_estrategica le) ORDER BY anio;
+
+EXECUTE 'SELECT dblink_disconnect(''sidpla'')';    
+    RETURN;
+ END
+$$;
+
+
+ALTER FUNCTION public.anios_sin_cargar() OWNER TO sifda;
+
+--
+-- Name: cargar_data_sidpla(integer); Type: FUNCTION; Schema: public; Owner: sifda
+--
+
+CREATE FUNCTION cargar_data_sidpla(anio integer) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+BEGIN 
+EXECUTE 'SELECT dblink_connect(''sidpla'', ''dbname=sidpla'')';
+
+EXECUTE 'INSERT INTO sidpla_linea_estrategica (SELECT id,id_dependencia_establecimiento,descripcion,
+codigo,activo,anio,recurrente FROM dblink(''sidpla'',''SELECT le.id,le.id_dependencia_establecimiento,le.descripcion,
+le.codigo,le.activo,le.anio,le.recurrente FROM sidpla_linea_estrategica le  WHERE le.anio ='||anio||''') 
+AS t(id int,id_dependencia_establecimiento int,descripcion text,codigo text,activo boolean,
+anio int,recurrente boolean))';
+
+EXECUTE 'INSERT INTO sidpla_actividad (SELECT id,id_linea_estrategica,id_empleado,descripcion,
+codigo,activo,meta_anual,descripcion_meta_anual,indicador,medio_verificacion,false AS generado
+FROM dblink(''sidpla'',''SELECT a.id,a.id_linea_estrategica,a.id_empleado,a.descripcion,
+a.codigo,a.activo,a.meta_anual,a.descripcion_meta_anual,a.indicador,a.medio_verificacion FROM sidpla_actividad a 
+LEFT OUTER JOIN sidpla_linea_estrategica le ON le.id = a.id_linea_estrategica WHERE le.anio ='||anio||''') 
+AS t(id int,id_linea_estrategica int,id_empleado int,descripcion text,codigo text,activo boolean,
+meta_anual numeric,descripcion_meta_anual text,indicador text,medio_verificacion text))';
+
+EXECUTE 'INSERT INTO sidpla_subactividad (SELECT id,id_actividad,id_empleado,descripcion,
+codigo,activo,meta_anual,descripcion_meta_anual,indicador,medio_verificacion 
+FROM dblink(''sidpla'',''SELECT s.id,s.id_actividad,s.id_empleado,s.descripcion,
+s.codigo,s.activo,s.meta_anual,s.descripcion_meta_anual,s.indicador,s.medio_verificacion FROM sidpla_subactividad s 
+LEFT OUTER JOIN sidpla_actividad a ON a.id = s.id_actividad 
+LEFT OUTER JOIN sidpla_linea_estrategica le ON le.id = a.id_linea_estrategica WHERE le.anio ='||anio||''') 
+AS t(id int,id_actividad int,id_empleado int,descripcion text,codigo text,activo boolean,
+meta_anual numeric,descripcion_meta_anual text,indicador text,medio_verificacion text))';
+
+EXECUTE 'SELECT dblink_disconnect(''sidpla'')';
+RETURN TRUE;
+EXCEPTION WHEN unique_violation THEN
+	EXECUTE 'SELECT dblink_disconnect(''sidpla'')';
+	RETURN FALSE;
+END; $$;
+
+
+ALTER FUNCTION public.cargar_data_sidpla(anio integer) OWNER TO sifda;
 
 SET default_tablespace = '';
 
@@ -163,7 +243,7 @@ CREATE TABLE ctl_dependencia_establecimiento (
     id_establecimiento integer,
     id_dependencia integer,
     id_dependencia_padre integer,
-    abreviatura character varying(255),
+    abreviatura character varying(10),
     habilitado boolean NOT NULL
 );
 
@@ -427,7 +507,8 @@ CREATE TABLE sidpla_actividad (
     meta_anual numeric(5,2) NOT NULL,
     descripcion_meta_anual character varying(50) NOT NULL,
     indicador text NOT NULL,
-    medio_verificacion character varying(300) NOT NULL
+    medio_verificacion character varying(300) NOT NULL,
+    generado boolean
 );
 
 
@@ -816,10 +897,10 @@ ALTER TABLE public.sifda_ruta_id_seq OWNER TO sifda;
 
 CREATE TABLE sifda_solicitud_servicio (
     id integer NOT NULL,
-    id_tipo_servicio integer NOT NULL,
-    user_id integer NOT NULL,
+    id_tipo_servicio integer,
+    user_id integer,
     id_dependencia_establecimiento integer,
-    id_estado integer NOT NULL,
+    id_estado integer,
     id_medio_solicita integer,
     descripcion text NOT NULL,
     fecha_recepcion timestamp(0) without time zone NOT NULL,
@@ -863,7 +944,7 @@ ALTER TABLE public.sifda_tipo_recurso OWNER TO sifda;
 
 CREATE TABLE sifda_tipo_recurso_dependencia (
     id integer NOT NULL,
-    id_tipo_recurso integer NOT NULL,
+    id_tipo_recurso integer,
     id_dependencia_establecimiento integer,
     costo_unitario double precision NOT NULL
 );
@@ -962,33 +1043,14 @@ CREATE SEQUENCE sifda_tracking_estado_id_seq
 ALTER TABLE public.sifda_tracking_estado_id_seq OWNER TO sifda;
 
 --
--- Name: user; Type: TABLE; Schema: public; Owner: sifda; Tablespace: 
+-- Name: vwetapassolicitud; Type: VIEW; Schema: public; Owner: sifda
 --
 
-CREATE TABLE "user" (
-    id integer NOT NULL,
-    username character varying(25) NOT NULL,
-    password character varying(64) NOT NULL,
-    email character varying(60) NOT NULL,
-    is_active boolean NOT NULL
-);
+CREATE VIEW vwetapassolicitud AS
+    SELECT row_number() OVER () AS id, ss.id AS id_solicitud, ss.descripcion AS dsc_solicitud, ss.fecha_recepcion AS fchrecep_solicitud, ss.fecha_requiere AS fchreq_solicitud, ts.id AS id_tipo_servicio, ts.nombre AS nombre_tipo_servicio, ts.descripcion AS dsc_tipo_servicio, rcv.id AS id_ciclo_vida, rcv.jerarquia AS jerar_ciclo_vida, rcv.descripcion AS dsc_ciclo_vida, rcv.peso AS etapa_peso, rcv.ignorar_sig AS ignorar_sig_etapa, srcv.id AS id_subetapa, srcv.descripcion AS dsc_subetapa, srcv.peso AS subetapa_peso, srcv.ignorar_sig AS ignorar_sig_subetapa, ot.id AS id_orden, ot.descripcion AS dsc_orden, ot.fecha_creacion AS fchcrea_orden, ot.fecha_finalizacion AS fchfin_orden, COALESCE(cd.id, 0) AS id_estado, COALESCE(cd.descripcion, 'Sin Asignar'::character varying) AS dsc_estado, e.id AS id_empleado, (((e.nombre)::text || ' '::text) || (e.apellido)::text) AS nom_empleado FROM (((((((sifda_solicitud_servicio ss LEFT JOIN sifda_tipo_servicio ts ON ((ss.id_tipo_servicio = ts.id))) LEFT JOIN sifda_ruta_ciclo_vida rcv ON ((ts.id = rcv.id_tipo_servicio))) LEFT JOIN sifda_orden_trabajo ot ON (((ot.id_etapa = rcv.id) AND (ot.id_solicitud_servicio = ss.id)))) LEFT JOIN catalogo_detalle cd ON ((cd.id = ot.id_estado))) LEFT JOIN sifda_equipo_trabajo et ON (((et.id_orden_trabajo = ot.id) AND (et.responsable_equipo = true)))) LEFT JOIN ctl_empleado e ON ((et.id_empleado = e.id))) LEFT JOIN (SELECT subetapa.id, subetapa.id_etapa, subetapa.descripcion, subetapa.jerarquia, subetapa.peso, subetapa.ignorar_sig FROM sifda_ruta_ciclo_vida subetapa WHERE (subetapa.id_etapa IS NOT NULL) ORDER BY subetapa.jerarquia) srcv ON ((srcv.id_etapa = rcv.id))) WHERE (rcv.id_etapa IS NULL) ORDER BY rcv.jerarquia;
 
 
-ALTER TABLE public."user" OWNER TO sifda;
-
---
--- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: sifda
---
-
-CREATE SEQUENCE user_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.user_id_seq OWNER TO sifda;
+ALTER TABLE public.vwetapassolicitud OWNER TO sifda;
 
 --
 -- Data for Name: bitacora; Type: TABLE DATA; Schema: public; Owner: sifda
@@ -1057,6 +1119,8 @@ SELECT pg_catalog.setval('catalogo_id_seq', 1, true);
 COPY ctl_cargo (id, nombre) FROM stdin;
 1	Técnico 1
 2	Programador
+4	Técnico 3
+3	Técnico 2
 \.
 
 
@@ -2307,6 +2371,14 @@ COPY ctl_empleado (id, id_dependencia_establecimiento, id_cargo, nombre, apellid
 3	1	2	Carolina	Perez	1972-06-11	cperez@salud.gob
 5	1	2	Oscar	Jimenez	1979-10-21	jimenez.osc979@gmail.com
 4	1	2	Leticia	Salamanca	1988-04-12	letty.sal@gmail.com
+13	1	1	Emilio	Perla	1972-03-04	epeña@gmail.com
+6	1	3	Marcos	Rivera	1986-10-24	mrivera@salud.gob
+7	1	3	Mauricio	Castro	1990-03-27	mcastro@salud.gob
+8	1	3	Karla	Guerrero	1984-03-03	kguerrero@salud.gob
+9	1	3	Jose	ponce	1987-05-04	jponce@gmail.com
+10	1	1	Martin	Reyes	1982-01-03	mreyes@gmail.com
+11	1	1	Carlos	Gutierrez	1982-06-01	cgutierres@gmail.com
+12	1	1	Pablo	Peña	1982-03-06	cpeña@gmail.com
 \.
 
 
@@ -3004,8 +3076,8 @@ SELECT pg_catalog.setval('ctl_tipo_dependencia_id_seq', 1, false);
 
 COPY fos_user_group (id, name, roles) FROM stdin;
 2	tecnico	a:1:{i:0;s:10:"ROLE_ADMIN";}
-3	Responsable de dependencia	a:11:{i:0;s:10:"ROLE_ADMIN";i:1;s:62:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_EDIT";i:2;s:62:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_LIST";i:3;s:64:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_CREATE";i:4;s:62:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_VIEW";i:5;s:64:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_DELETE";i:6;s:64:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_EXPORT";i:7;s:66:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_OPERATOR";i:8;s:64:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_MASTER";i:9;s:23:"ROLE_USER_TIPO_SERVICIO";i:10;s:21:"ROLE_USER_SEGUIMIENTO";}
-1	solicitante	a:9:{i:0;s:10:"ROLE_ADMIN";i:1;s:72:"ROLE_MINSAL_SIFDA_SOLICITUD_SERVICIO_ADMIN_SIFDA_SOLICITUD_SERVICIO_EDIT";i:2;s:72:"ROLE_MINSAL_SIFDA_SOLICITUD_SERVICIO_ADMIN_SIFDA_SOLICITUD_SERVICIO_LIST";i:3;s:74:"ROLE_MINSAL_SIFDA_SOLICITUD_SERVICIO_ADMIN_SIFDA_SOLICITUD_SERVICIO_CREATE";i:4;s:72:"ROLE_MINSAL_SIFDA_SOLICITUD_SERVICIO_ADMIN_SIFDA_SOLICITUD_SERVICIO_VIEW";i:5;s:74:"ROLE_MINSAL_SIFDA_SOLICITUD_SERVICIO_ADMIN_SIFDA_SOLICITUD_SERVICIO_DELETE";i:6;s:74:"ROLE_MINSAL_SIFDA_SOLICITUD_SERVICIO_ADMIN_SIFDA_SOLICITUD_SERVICIO_EXPORT";i:7;s:62:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_LIST";i:8;s:62:"ROLE_MINSAL_SIFDA_TIPO_SERVICIO_ADMIN_SIFDA_TIPO_SERVICIO_VIEW";}
+1	solicitante	a:11:{i:0;s:10:"ROLE_ADMIN";i:1;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_LIST";i:2;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_VIEW";i:3;s:58:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_EDIT";i:4;s:58:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_LIST";i:5;s:60:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_CREATE";i:6;s:58:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_VIEW";i:7;s:60:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_DELETE";i:8;s:60:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_EXPORT";i:9;s:62:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_OPERATOR";i:10;s:60:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_MASTER";}
+3	Responsable de dependencia	a:71:{i:0;s:10:"ROLE_ADMIN";i:1;s:42:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_EDIT";i:2;s:42:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_LIST";i:3;s:44:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_CREATE";i:4;s:42:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_VIEW";i:5;s:44:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_DELETE";i:6;s:44:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_EXPORT";i:7;s:46:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_OPERATOR";i:8;s:44:"ROLE_MINSAL_SIFDASIFDA_ADMIN_CATALOGO_MASTER";i:9;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_EDIT";i:10;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_LIST";i:11;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_CREATE";i:12;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_VIEW";i:13;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_DELETE";i:14;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_EXPORT";i:15;s:57:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_OPERATOR";i:16;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_SERVICIO_MASTER";i:17;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_EDIT";i:18;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_LIST";i:19;s:57:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_CREATE";i:20;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_VIEW";i:21;s:57:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_DELETE";i:22;s:57:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_EXPORT";i:23;s:59:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_OPERATOR";i:24;s:57:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RUTA_CICLO_VIDA_MASTER";i:25;s:58:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_LIST";i:26;s:58:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_SOLICITUD_SERVICIO_VIEW";i:27;s:63:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_EDIT";i:28;s:63:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_LIST";i:29;s:65:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_CREATE";i:30;s:63:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_VIEW";i:31;s:65:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_DELETE";i:32;s:65:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_EXPORT";i:33;s:67:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_OPERATOR";i:34;s:65:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_REPROGRAMACION_SERVICIO_MASTER";i:35;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_EDIT";i:36;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_LIST";i:37;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_CREATE";i:38;s:53:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_VIEW";i:39;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_DELETE";i:40;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_EXPORT";i:41;s:57:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_OPERATOR";i:42;s:55:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_ORDEN_TRABAJO_MASTER";i:43;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_EDIT";i:44;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_LIST";i:45;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_CREATE";i:46;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_VIEW";i:47;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_DELETE";i:48;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_EXPORT";i:49;s:58:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_OPERATOR";i:50;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_EQUIPO_TRABAJO_MASTER";i:51;s:61:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_INFORME_ORDEN_TRABAJO_LIST";i:52;s:61:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_INFORME_ORDEN_TRABAJO_VIEW";i:53;s:52:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_EDIT";i:54;s:52:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_LIST";i:55;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_CREATE";i:56;s:52:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_VIEW";i:57;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DELETE";i:58;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_EXPORT";i:59;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_OPERATOR";i:60;s:54:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_MASTER";i:61;s:64:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_EDIT";i:62;s:64:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_LIST";i:63;s:66:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_CREATE";i:64;s:64:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_VIEW";i:65;s:66:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_DELETE";i:66;s:66:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_EXPORT";i:67;s:68:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_OPERATOR";i:68;s:66:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_TIPO_RECURSO_DEPENDENCIA_MASTER";i:69;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RECURSO_SERVICIO_LIST";i:70;s:56:"ROLE_MINSAL_SIFDASIFDA_ADMIN_SIFDA_RECURSO_SERVICIO_VIEW";}
 \.
 
 
@@ -3021,7 +3093,9 @@ SELECT pg_catalog.setval('fos_user_group_id_seq', 3, true);
 --
 
 COPY fos_user_user (id, id_dependencia_establecimiento, id_empleado, username, username_canonical, email, email_canonical, enabled, salt, password, last_login, locked, expired, expires_at, confirmation_token, password_requested_at, roles, credentials_expired, credentials_expire_at, created_at, updated_at, date_of_birth, firstname, lastname, website, biography, gender, locale, timezone, phone, facebook_uid, facebook_name, facebook_data, twitter_uid, twitter_name, twitter_data, gplus_uid, gplus_name, gplus_data, token, two_step_code) FROM stdin;
-1	4	\N	Minsal	minsal	minsal@salud.gob.sv	minsal@salud.gob.sv	t	nqc2pq64y9wkwk4o0o8o8ossc00skoc	RYzSYKZJbFvpqIUS7AEyN1vQmix9IKNZoIMUmA3jvZQeEVDlECevcOYlCELWoRingMT36/vAtfBmr9rLEsQXaQ==	2015-01-30 17:29:40	f	f	\N	\N	\N	a:1:{i:0;s:16:"ROLE_SUPER_ADMIN";}	f	\N	2015-01-27 21:03:12	2015-01-30 17:29:40	\N	\N	\N	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
+3	\N	\N	sviana	sviana	sviana@salud.gob.sv	sviana@salud.gob.sv	t	3ik1vjp3h9mo0g4cooos8o00swk808g	a2uCQBSR/lqrmIdgi8+HkvtrklbsY0svXGPp7WkyEVom4MWvr/nNcA/fh4NJKc7LZIKwduDUWsABL+xsiv9RCA==	2015-01-29 11:27:07	f	f	\N	\N	\N	a:0:{}	f	\N	2015-01-29 09:37:24	2015-01-29 11:27:07	\N	Sonia	Viana	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
+1	4	\N	Minsal	minsal	minsal@salud.gob.sv	minsal@salud.gob.sv	t	nqc2pq64y9wkwk4o0o8o8ossc00skoc	RYzSYKZJbFvpqIUS7AEyN1vQmix9IKNZoIMUmA3jvZQeEVDlECevcOYlCELWoRingMT36/vAtfBmr9rLEsQXaQ==	2015-02-07 02:20:08	f	f	\N	\N	\N	a:2:{i:0;s:16:"ROLE_SUPER_ADMIN";i:1;s:10:"ROLE_ADMIN";}	f	\N	2015-01-27 21:03:12	2015-01-29 11:45:48	\N	Pedro	Perez	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
+2	\N	\N	anthony	anthony	anthony.huezo@gmail.com	anthony.huezo@gmail.com	t	44n26usz7740oswcgggg0kk400w8sgc	6sTUfgUKmPOKq0A+UXVHOOAlilTBvx+r6SCWHFgscRbRmn9TdnTCetnNbklRmTNIOBp8r5PVqFC9QVY66tDHYw==	2015-02-07 02:20:54	f	f	\N	\N	\N	a:0:{}	f	\N	2015-01-28 23:40:51	2015-01-29 12:51:53	\N	Anthony	Huezo	\N	\N	u	\N	\N	\N	\N	\N	null	\N	\N	null	\N	\N	null	\N	\N
 \.
 
 
@@ -3032,6 +3106,9 @@ COPY fos_user_user (id, id_dependencia_establecimiento, id_empleado, username, u
 COPY fos_user_user_group (user_id, group_id) FROM stdin;
 1	1
 1	3
+2	1
+1	2
+3	3
 \.
 
 
@@ -3039,15 +3116,19 @@ COPY fos_user_user_group (user_id, group_id) FROM stdin;
 -- Name: fos_user_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('fos_user_user_id_seq', 1, true);
+SELECT pg_catalog.setval('fos_user_user_id_seq', 3, true);
 
 
 --
 -- Data for Name: sidpla_actividad; Type: TABLE DATA; Schema: public; Owner: sifda
 --
 
-COPY sidpla_actividad (id, id_linea_estrategica, id_empleado, descripcion, codigo, activo, meta_anual, descripcion_meta_anual, indicador, medio_verificacion) FROM stdin;
-1	1	1	Desarrollo de sistema de contabilidad	DESACONTA	t	5.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte
+COPY sidpla_actividad (id, id_linea_estrategica, id_empleado, descripcion, codigo, activo, meta_anual, descripcion_meta_anual, indicador, medio_verificacion, generado) FROM stdin;
+1	1	1	Desarrollo de sistema de contabilidad	DESACONTA	t	5.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	t
+2	2	2	Desarrollo de sistema de contabilidad	DESACONTA	t	2.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	t
+3	3	3	Desarrollo de sistema de contabilidad	DESACONTA	t	3.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	t
+10	10	1	Desarrollo de sistema de contabilidad	DESACONTA	t	3.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	f
+11	11	1	Desarrollo de sistema de contabilidad	DESACONTA	t	3.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	f
 \.
 
 
@@ -3063,7 +3144,11 @@ SELECT pg_catalog.setval('sidpla_actividad_id_seq', 1, false);
 --
 
 COPY sidpla_linea_estrategica (id, id_dependencia_establecimiento, descripcion, codigo, activo, anio, recurrente) FROM stdin;
-1	4	Mejora en el desarrollo de sistemas	DESA12	t	2014	t
+2	1	Desarrollo Interno	DS2015	t	2014	t
+1	4	Mejora en el desarrollo de sistemas	DESA12	t	2013	t
+3	1	Desarrollo Interno	DS2015	t	2014	t
+10	1	Desarrollo Interno	DS2015	t	2016	t
+11	1	Desarrollo Interno	DS2015	t	2016	t
 \.
 
 
@@ -3124,48 +3209,9 @@ SELECT pg_catalog.setval('sifda_detalle_solicitud_servicio_id_seq', 1, false);
 --
 
 COPY sifda_equipo_trabajo (id, id_orden_trabajo, id_empleado, responsable_equipo) FROM stdin;
-1	3	1	t
 2	1	2	t
 3	2	4	t
-4	13	2	t
-15	24	3	t
-16	24	2	f
-18	25	2	t
-19	25	1	f
-20	25	3	f
-21	25	5	f
-17	24	5	f
-22	14	5	t
-23	14	4	f
-6	22	1	f
-7	22	3	f
-5	22	4	t
-8	10	3	t
-9	10	1	f
-10	10	2	f
-11	10	4	f
-12	10	5	f
-13	21	1	t
-14	21	3	f
-24	6	2	t
-25	6	4	f
-27	27	2	t
-28	27	5	f
-29	27	4	f
-30	28	3	t
-31	31	1	t
-32	31	2	f
-33	31	5	f
-34	31	4	f
-35	22	3	f
-26	5	4	t
-36	5	1	f
-37	5	2	f
-38	5	5	f
-39	5	1	f
-40	32	3	t
-41	32	1	f
-42	32	2	f
+48	79	1	t
 \.
 
 
@@ -3173,7 +3219,7 @@ COPY sifda_equipo_trabajo (id, id_orden_trabajo, id_empleado, responsable_equipo
 -- Name: sifda_equipo_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 42, true);
+SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 48, true);
 
 
 --
@@ -3182,7 +3228,6 @@ SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 42, true);
 
 COPY sifda_informe_orden_trabajo (id, id_empleado, id_orden_trabajo, id_subactividad, id_dependencia_establecimiento, id_etapa, detalle, fecha_realizacion, fecha_registro, terminado) FROM stdin;
 1	1	1	\N	1	1	xxxxxxxxxxxxx	2014-11-09 00:00:00	2014-11-10 00:00:00	t
-2	1	14	\N	1	0	marica	2015-01-30 00:00:00	2015-01-30 00:00:00	f
 \.
 
 
@@ -3190,7 +3235,7 @@ COPY sifda_informe_orden_trabajo (id, id_empleado, id_orden_trabajo, id_subactiv
 -- Name: sifda_informe_orden_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 2, true);
+SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 1, true);
 
 
 --
@@ -3198,39 +3243,9 @@ SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 2, true);
 --
 
 COPY sifda_orden_trabajo (id, id_solicitud_servicio, id_estado, id_etapa, id_dependencia_establecimiento, id_prioridad, descripcion, codigo, fecha_creacion, fecha_finalizacion, observacion) FROM stdin;
-14	2	2	14	4	11	xcxcxcxcxc	MINUN00115	2015-01-03 00:00:00	2015-01-16 00:00:00	dddddd
-13	2	2	9	4	9	plmokn	MINUN00114	2014-11-13 00:00:00	2015-02-13 00:00:00	qazwsx
-15	2	2	23	4	10	edcryhnu	MINDI00515	2015-01-01 00:00:00	2016-02-12 00:00:00	yhnu
-17	2	2	1	4	10	DDDS	MINDI00615	2015-01-16 00:00:00	2015-03-20 00:00:00	DSDDD
-18	2	2	18	4	9	c	MINDI00715	2015-01-20 00:00:00	2015-11-14 00:00:00	ff
-21	2	2	1	9	8	dvvc	MINAL00115	2015-01-08 00:00:00	2015-01-29 00:00:00	dd
-19	2	2	5	19	9	dfdfdfdfd	MINDI00815	2015-01-01 00:00:00	2015-05-15 00:00:00	dsdd
-20	2	2	17	19	9	fdfdfdf	MINDI00915	2015-01-06 00:00:00	2015-02-14 00:00:00	ddsddd
-22	3	2	12	9	8	cfddf	MINAL00215	2015-01-02 00:00:00	2015-01-09 00:00:00	adf
-23	2	2	14	19	11	dddd	MINDI01015	2015-01-06 00:00:00	2015-01-27 00:00:00	ewewewe
-24	2	2	4	19	8	jkl	MINDI01115	2015-01-02 00:00:00	2015-01-30 00:00:00	dfg
-25	2	2	1	7	9	ewewewe	MINCL00115	2015-01-21 00:00:00	2015-04-03 00:00:00	sdddddd
-26	2	2	17	7	8	dddadadas	MINCL00215	2015-01-02 00:00:00	2015-04-24 00:00:00	dfgvdfdf
-27	2	2	13	7	10	dddd	MINCL00315	2015-01-01 00:00:00	2015-01-31 00:00:00	ddds
-29	2	2	5	19	8	Proyecto de ley para desarrollo de sistemas	MINDI01215	2015-01-22 00:00:00	2015-04-30 00:00:00	debe tomarse en cuenta ciclo de vida
-30	2	2	10	13	10	Establecer estandares para BD	MINDE00215	2015-01-22 00:00:00	2015-02-05 00:00:00	Tomar en cuenta con lo que cuenta MINSAL
-31	3	2	1	8	8	sistema para UACI	MINDI01315	2015-01-22 00:00:00	2015-04-24 00:00:00	para control de efectivo
-6	2	1	19	27	8	elaborar manual	MINPR00115	2015-01-09 00:00:00	2015-01-31 00:00:00	debe seguir std
-5	2	2	29	7	10	tabular resultados	MINDE00115	2015-01-07 00:00:00	2015-03-27 00:00:00	\N
-1	2	2	1	4	9	realizar un analisis del sistema a desarrolar	MINFA00113	2013-11-13 00:00:00	\N	debe ir a la unidad
 2	2	2	2	1	11	daddad	MINFA00213	2013-12-13 00:00:00	2014-12-22 00:00:00	qwertyuiop
-28	3	2	19	4	10	Sistema de elaboracion de facturas	MINCL00415	2015-01-22 00:00:00	2015-01-30 00:00:00	debe imprimir la factura
-4	3	2	12	1	8	Diseno de bd	MINDE00114	2014-01-02 00:00:00	2015-02-28 00:00:00	las llaves primarias deben ser id
-3	2	4	3	1	10	dsddd	MINFA00114	2014-01-01 00:00:00	2015-11-13 00:00:00	\N
-16	2	2	3	4	10	vvdvbfdvfvd	MINDI00114	2014-11-04 00:00:00	2015-01-15 00:00:00	vdfdgbgfbgf
-7	2	1	18	13	8	sssssssssssss	MINDI00215	2015-01-01 00:00:00	2015-02-19 00:00:00	ssssssssssssss
-8	2	1	17	18	10	ddadas	MINDI00315	2015-01-06 00:00:00	2015-01-20 00:00:00	ddsd
-9	2	2	1	4	8	dsddd	MINDI00415	2015-01-02 00:00:00	2015-01-27 00:00:00	dcfddscd
-32	5	2	5	110	10	Resultado pruebas	UNIDI00115	2015-01-24 00:00:00	2015-03-20 00:00:00	Debe existir documento impreso
-12	2	2	15	4	8	mnbv	MINGE00115	2015-01-11 00:00:00	2015-06-26 00:00:00	zxcv
-10	2	2	30	4	9	ddssss	MINGE00114	2014-01-13 00:00:00	2015-01-28 00:00:00	cdcdcd
-11	2	2	1	4	8	adf	MINGE00214	2014-11-04 00:00:00	2015-07-10 00:00:00	qwert
-33	4	2	8	98	11	Realizar el documento	REGSE00115	2015-01-24 00:00:00	2015-01-31 00:00:00	Debe estar impreso
+1	2	4	1	4	9	realizar un analisis del sistema a desarrolar	MINFA00113	2013-11-13 00:00:00	\N	debe ir a la unidad
+79	87	2	1	4	9	Analisis de sistemas	MINDI00115	2015-02-07 16:28:30	\N	\N
 \.
 
 
@@ -3238,7 +3253,7 @@ COPY sifda_orden_trabajo (id, id_solicitud_servicio, id_estado, id_etapa, id_dep
 -- Name: sifda_orden_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_orden_trabajo_id_seq', 33, true);
+SELECT pg_catalog.setval('sifda_orden_trabajo_id_seq', 79, true);
 
 
 --
@@ -3301,7 +3316,19 @@ COPY sifda_ruta (id, id_tipo_servicio, descripcion, tipo) FROM stdin;
 --
 
 COPY sifda_ruta_ciclo_vida (id, id_tipo_servicio, id_etapa, descripcion, referencia, jerarquia, ignorar_sig, peso) FROM stdin;
-1	1	\N	Analisis de sistemas	implica investigacion, observacion entre otros	1	f	10
+5	1	\N	Implementacion	Puesta en marcha	5	f	15
+6	1	\N	Documentacion	Manuales técnico, de usuario y de instalación	6	t	10
+4	1	\N	Pruebas	Unitarias y funcionales	4	f	15
+2	1	\N	Diseño de sistemas	ademas abarca las pruebas	2	f	25
+1	1	\N	Analisis de sistemas	se debe realizar buena invetigacion	1	f	15
+3	1	\N	Construccion	Debe con herramientas libres	3	f	20
+7	1	1	Análisis de situación actual	investigación mediante observación, encuestas	1	f	45
+11	2	10	Análisis de situación actual	investigación mediante observación, encuestas	1	f	35
+13	2	11	asdd	sww	1	f	40
+8	1	1	dsdsd	dd	2	t	55
+9	2	\N	asdf	dsdd	1	f	60
+10	2	\N	asdd	sasa	2	t	40
+12	2	10	adasdsds	dssdsds	2	t	65
 \.
 
 
@@ -3309,7 +3336,7 @@ COPY sifda_ruta_ciclo_vida (id, id_tipo_servicio, id_etapa, descripcion, referen
 -- Name: sifda_ruta_ciclo_vida_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_ruta_ciclo_vida_id_seq', 1, true);
+SELECT pg_catalog.setval('sifda_ruta_ciclo_vida_id_seq', 13, true);
 
 
 --
@@ -3324,20 +3351,14 @@ SELECT pg_catalog.setval('sifda_ruta_id_seq', 5, true);
 --
 
 COPY sifda_solicitud_servicio (id, id_tipo_servicio, user_id, id_dependencia_establecimiento, id_estado, id_medio_solicita, descripcion, fecha_recepcion, fecha_requiere) FROM stdin;
+1	7	1	92	1	5	Se requiere un sistema geografico que referencie las unidades de salud	2014-08-29 00:00:00	2014-11-17 00:00:00
 2	1	1	4	2	5	Sistema contable	2014-10-12 00:00:00	2015-03-07 00:00:00
 3	2	1	7	2	5	Pagina web para las farmacias	2014-11-19 00:00:00	2014-12-29 00:00:00
 4	4	1	20	2	5	Se necesita una aplicación para ver gastos desde el movil	2015-01-23 00:00:00	2015-03-02 00:00:00
 5	10	1	53	2	5	Desarrollo de sistema para control de medicinas	2015-01-23 00:00:00	2015-03-31 00:00:00
-1	7	1	92	1	5	Se requiere un sistema geografico que referencie las unidades de salud	2014-08-29 00:00:00	2014-11-17 00:00:00
-13	4	1	7	3	5	notificacion por celular	2015-01-30 18:58:45	2015-01-30 00:00:00
-14	12	1	86	1	5	Sistema para control de Expedientes	2015-01-30 20:06:54	2015-02-20 00:00:00
-15	5	1	21	1	5	prueba dunga	2015-01-30 21:55:13	2015-01-30 00:00:00
-16	7	1	85	1	5	Control de medicina	2015-01-30 22:33:44	2015-01-30 00:00:00
-17	10	1	95	1	5	Sistema para Planillas	2015-01-30 22:36:55	2015-09-23 00:00:00
-18	4	1	98	1	5	Ubicacion google	2015-01-30 22:46:35	2015-01-31 00:00:00
-21	10	1	3	1	5	prueba sabado dunga	2015-01-31 11:24:10	2015-01-31 00:00:00
-24	9	1	3	1	5	Nueva solicitud	2015-01-31 12:14:50	2015-01-31 00:00:00
-26	9	1	3	1	5	wwwwww	2015-01-31 12:18:56	2015-01-31 00:00:00
+87	1	\N	4	2	6	Desarrollar un sistema con su ciclo de vida	2015-02-07 16:28:30	\N
+88	5	\N	4	2	6	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo	2015-02-07 16:28:30	\N
+89	7	\N	4	2	6	XXXXXXXXXXXXXXXXXXXX	2015-02-07 16:28:30	\N
 \.
 
 
@@ -3345,7 +3366,7 @@ COPY sifda_solicitud_servicio (id, id_tipo_servicio, user_id, id_dependencia_est
 -- Name: sifda_solicitud_servicio_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_solicitud_servicio_id_seq', 26, true);
+SELECT pg_catalog.setval('sifda_solicitud_servicio_id_seq', 89, true);
 
 
 --
@@ -3383,18 +3404,18 @@ SELECT pg_catalog.setval('sifda_tipo_recurso_id_seq', 1, false);
 --
 
 COPY sifda_tipo_servicio (id, id_actividad, nombre, descripcion, activo, id_dependencia_establecimiento) FROM stdin;
-1	1	Desarrollo de sistemas	Desarrollar un sistema con su ciclo de vida	t	1
-2	1	sistema contable de la Dir. de Regulacion	contara con catalogos, estado de resultados, balances, entre otros	t	1
-3	1	Sistema de contabilidad para UFI	el desarrollo de este sistema incluye contabilidad gnal y de costos	t	1
-4	1	Desarrollo de aplicacion movil	Desarrollo de aplicacion movil para movimientos contables	t	1
-5	1	aplicacion movil para costeo	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo	t	2
-7	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
+2	1	sistema contable de la Dir. de Regulacion	contara con catalogos, estado de resultados, balances, entre otros	t	2
+3	1	Sistema de contabilidad para UFI	el desarrollo de este sistema incluye contabilidad gnal y de costos	t	2
+4	1	Desarrollo de aplicacion movil	Desarrollo de aplicacion movil para movimientos contables	t	2
+6	1	xxxxx	yyyyyyyyyyyyyyyy	f	2
 8	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
-9	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	3
-10	1	Sistemas contables para UACI	adfqwert	t	3
-11	1	Sistema de contabilidad para unidades de salud	asddffgghtrrtrt	t	3
-12	1	Para unidades de salud	asddffgghtrrtrt	t	3
-6	1	xxxxx	yyyyyyyyyyyyyyyy	t	4
+9	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
+10	1	Sistemas contables para UACI	adfqwert	t	2
+12	1	Para unidades de salud	asddffgghtrrtrt	t	2
+11	1	Sistema de contabilidad para unidades de salud	asddffgghtrrtrt	t	2
+1	1	Desarrollo de sistemas	Desarrollar un sistema con su ciclo de vida	t	4
+5	2	aplicacion movil para costeo	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo	t	4
+7	3	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	4
 \.
 
 
@@ -3418,21 +3439,6 @@ COPY sifda_tracking_estado (id, id_orden_trabajo, id_estado, id_etapa, fecha_ini
 --
 
 SELECT pg_catalog.setval('sifda_tracking_estado_id_seq', 1, false);
-
-
---
--- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: sifda
---
-
-COPY "user" (id, username, password, email, is_active) FROM stdin;
-\.
-
-
---
--- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
---
-
-SELECT pg_catalog.setval('user_id_seq', 1, false);
 
 
 --
@@ -3676,14 +3682,6 @@ ALTER TABLE ONLY sifda_tipo_recurso_dependencia
 
 
 --
--- Name: user_pkey; Type: CONSTRAINT; Schema: public; Owner: sifda; Tablespace: 
---
-
-ALTER TABLE ONLY "user"
-    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
-
-
---
 -- Name: almacena_fk; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -3817,13 +3815,6 @@ CREATE INDEX establece_estado_fk ON sifda_solicitud_servicio USING btree (id_est
 
 
 --
--- Name: fki_dependencia_establecimiento_tipo_servicio; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
---
-
-CREATE INDEX fki_dependencia_establecimiento_tipo_servicio ON sifda_tipo_servicio USING btree (id_dependencia_establecimiento);
-
-
---
 -- Name: forma_parte_fk; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -3863,13 +3854,6 @@ CREATE INDEX idx_b3c77447fe54d947 ON fos_user_user_group USING btree (group_id);
 --
 
 CREATE UNIQUE INDEX idx_bitacora ON bitacora USING btree (id);
-
-
---
--- Name: idx_catalogo; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
---
-
-CREATE UNIQUE INDEX idx_catalogo ON catalogo USING btree (id);
 
 
 --
@@ -4097,13 +4081,6 @@ CREATE UNIQUE INDEX idx_sifda_tipo_recurso ON sifda_tipo_recurso USING btree (id
 
 
 --
--- Name: idx_sifda_tipo_servicio; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
---
-
-CREATE UNIQUE INDEX idx_sifda_tipo_servicio ON sifda_tipo_servicio USING btree (id);
-
-
---
 -- Name: idx_sifda_tracking_estado; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -4265,20 +4242,6 @@ CREATE UNIQUE INDEX uniq_583d1f3e5e237e06 ON fos_user_group USING btree (name);
 
 
 --
--- Name: uniq_8d93d649e7927c74; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
---
-
-CREATE UNIQUE INDEX uniq_8d93d649e7927c74 ON "user" USING btree (email);
-
-
---
--- Name: uniq_8d93d649f85e0677; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
---
-
-CREATE UNIQUE INDEX uniq_8d93d649f85e0677 ON "user" USING btree (username);
-
-
---
 -- Name: uniq_c560d76192fc23a8; Type: INDEX; Schema: public; Owner: sifda; Tablespace: 
 --
 
@@ -4327,7 +4290,7 @@ ALTER TABLE ONLY sifda_tipo_servicio
 --
 
 ALTER TABLE ONLY fos_user_user_group
-    ADD CONSTRAINT fk_b3c77447a76ed395 FOREIGN KEY (user_id) REFERENCES fos_user_user(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_b3c77447a76ed395 FOREIGN KEY (user_id) REFERENCES fos_user_user(id);
 
 
 --
@@ -4335,7 +4298,7 @@ ALTER TABLE ONLY fos_user_user_group
 --
 
 ALTER TABLE ONLY fos_user_user_group
-    ADD CONSTRAINT fk_b3c77447fe54d947 FOREIGN KEY (group_id) REFERENCES fos_user_group(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_b3c77447fe54d947 FOREIGN KEY (group_id) REFERENCES fos_user_group(id);
 
 
 --

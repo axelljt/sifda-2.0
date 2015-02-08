@@ -85,49 +85,53 @@
               </div>
         </div>                       
      {% if entities %}       
-       <table id="RechTabla" class="table table-bordered table-hover table-condensed">
-        <thead>
-            <tr>
-                <th><center>N°</center></th>
-                <th><center>Establecimiento</center></th>
-                <th><center>DependenciaSolicitante</center></th>
-                <th><center>TipoServicio</center></th>
-                <th><center>Descripcion</center></th>
-                <th><center>FechaRecepcion</center></th>
-                <th><center>FechaRequiere</center></th>
-               
-            </tr>
-        </thead>
-        <tbody>
-            {%set count=1%}   
-        {% for rechazado in entities %}
-            {%if rechazado.idDependenciaEstablecimiento == usuario.idDependenciaEstablecimiento%}
-                <tr>
-                    <td>{{ count }}</td>
-                            {#<td>{{ loop.index }}</td>#}
-                    <td><justify>{{ rechazado.idDependenciaEstablecimiento.idEstablecimiento }}</justify></td>
-                    <td>{{ rechazado.idDependenciaEstablecimiento.idDependencia }}</td>
-                    <td>{{ rechazado.idTipoServicio }}</td>
-                    <td>{{ rechazado.descripcion }}</td>
-                    <td>{% if rechazado.fechaRecepcion %}{{ rechazado.fechaRecepcion|date('d-m-Y') }}{% endif %}</td>
-                    <td>{% if rechazado.fechaRequiere %}{{ rechazado.fechaRequiere|date('d-m-Y') }}{% endif %}</td>
-                    
-                </tr>
-                {%set count=count+1%}
-            {%endif%}
-        {% endfor %}
-        </tbody>
-    </table> 
+                <table id="RechTabla" class="table table-bordered table-hover table-condensed">
+                 <thead>
+                     <tr>
+                         <th><center>N°</center></th>
+                         <th><center>Establecimiento</center></th>
+                         <th><center>DependenciaSolicitante</center></th>
+                         <th><center>TipoServicio</center></th>
+                         <th><center>Descripcion</center></th>
+                         <th><center>FechaRecepcion</center></th>
+                         <th><center>FechaRequiere</center></th>
+
+                     </tr>
+                 </thead>
+                 <tbody>
+                     {%set count=1%}   
+                 {% for rechazado in entities %}
+                    {# {%if rechazado.idDependenciaEstablecimiento == usuario.idDependenciaEstablecimiento%}#}
+                         <tr>
+                             <td>{{ count }}</td>
+                                     {#<td>{{ loop.index }}</td>#}
+                             <td><justify>{{ rechazado.idDependenciaEstablecimiento.idEstablecimiento }}</justify></td>
+                             <td>{{ rechazado.idDependenciaEstablecimiento.idDependencia }}</td>
+                             <td>{{ rechazado.idTipoServicio }}</td>
+                             <td>{{ rechazado.descripcion }}</td>
+                             <td>{% if rechazado.fechaRecepcion %}{{ rechazado.fechaRecepcion|date('d-m-Y') }}{% endif %}</td>
+                             <td>{% if rechazado.fechaRequiere %}{{ rechazado.fechaRequiere|date('d-m-Y') }}{% endif %}</td>
+
+                         </tr>
+                         {%set count=count+1%}
+                     {#{%endif%}#}
+                 {% endfor %}
+                 </tbody>
+             </table> 
         
     {% else %}
-        <div id="#msgRechazados">
+        <div id="msgRechazados">
             <center><h4>No se encontraron solicitudes Rechazados</h4></center>
         </div>    
    {% endif%}
      
-                {% if entities%}
+                
                 <div id="rangoRechTabla"></div>
-                {% endif %} 
+             
+                <div id="msgRechazados2">
+                    <center><h4>No se encontraron solicitudes en ese Rango</h4></center>
+                </div>   
+                
     </div>
     
 {% endblock%}  
@@ -147,6 +151,7 @@
             
             $('#fechas').hide("slow");
             $('#combos').hide("slow");
+            $('#msgRechazados2').hide("slow");
             
             
             $('#Todos').click(function(){
@@ -157,6 +162,7 @@
             $('#RechTabla').show("slow");
             $('#rangoRechTabla').hide("slow");
             $('#msgRechazados').show("slow");
+            $('#msgRechazados2').hide("slow");
           });
           
           $('#especifico').click(function(){
@@ -165,8 +171,9 @@
                 $("#RechTabla").hide("slow");
                 $("#fechas").show("slow");
                 $("#combos").show("slow");
-                $('#rangoRechTabla').show("slow");
-                $('#msgRechazados').hide("slow");
+                 $('#msgRechazados').hide("slow");
+               {# $('#rangoRechTabla').show("slow");#}
+                {#$('#msgRechazados').hide("slow");#}
                 {#$('#msgIngresados').hide("slow");
                 
                 $('#msgAsignados').hide("slow");#}
@@ -242,11 +249,22 @@
                     }
                         , function( data ) {
                            console.log( data );
-                         $("#rangoRechTabla").html(data);
+                           
+                            res=data.val;
+                           
+                           if(res=="0"){
+                               
+                                $('#msgRechazados2').show("slow");
+                            }
+                           else
+                           {
+                               $("#rangoRechTabla").html(data);
+                           }
+                         
                 
                     }, "json");
                     
-                    $('#msgRechazados').show("slow");
+                   
                 }
            
        }); 

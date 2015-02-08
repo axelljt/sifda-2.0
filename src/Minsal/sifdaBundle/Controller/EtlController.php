@@ -38,13 +38,11 @@ class EtlController extends Controller{
     public function cargarPAOAction()
     {
         $anio = $this->get('request')->request->get('anio');
-//        if ($anio == "0"){
-//            return new Response('0');
-//        }
-        $anio = 2014;
+        if ($anio == "0"){
+            return new Response('0');
+        }
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('resultado','resultado');
-//        $anio = 2014;
         $em = $this->getDoctrine()->getEntityManager();
         $sql = "SELECT cargar_data_sidpla(?) as resultado;";
         $query = $em->createNativeQuery($sql, $rsm);

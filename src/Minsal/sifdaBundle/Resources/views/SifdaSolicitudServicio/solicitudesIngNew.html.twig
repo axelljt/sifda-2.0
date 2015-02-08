@@ -103,7 +103,7 @@
           
                        {% for entity in entities %}
             
-                                {%if entity.idDependenciaEstablecimiento == usuario.idDependenciaEstablecimiento%}
+                               {# {%if entity.idDependenciaEstablecimiento == usuario.idDependenciaEstablecimiento%}#}
                 
                          <tr>
                             {#<td><a href="{{ path('sifda_solicitudservicio_show', { 'id': entity.id }) }}">{{ entity.id }}</a></td>#} 
@@ -118,21 +118,24 @@
                          </tr>
                         
                          {%set count=count+1%}
-                        {% endif %}    
+                       {# {% endif %}  #}  
                      
                        {% endfor %}
                 </tbody>
             </table>
         {% else %}
                 <div id="msgIngresados">
-                     <center><h4>No se encontraron solicitudes en ese Rango</h4></center>
+                     <center><h4>No se encontraron solicitudes</h4></center>
                 </div>  
         {%endif%}  
         
-        {% if entities%}
-                <div id="rangoTabla"></div>
+       
+            <div id="rangoTabla"></div>
+      
+             <div id="msgIngresados2">
+              <center><h4>No se encontraron solicitudes en este Rango</h4></center>
+             </div> 
         
-        {% endif %}
   </div>  
               
 {% endblock %}
@@ -151,6 +154,7 @@
             
             $('#fechas').hide("slow");
             $('#combos').hide("slow");
+            $('#msgIngresados2').hide("slow");
             
             $('#Todos').click(function(){
             
@@ -160,6 +164,7 @@
             $('#tabla').show("slow");
             $('#rangoTabla').hide("slow");
             $('#msgIngresados').show("slow");
+            $('#msgIngresados2').hide("slow");
             
           });
           
@@ -171,6 +176,7 @@
                 $("#combos").show("slow");
                 $('#rangoTabla').show("slow");
                 $('#msgIngresados').hide("slow");
+                {#$('#msgIngresados2').show("slow");#}
                 {#$('#msgIngresados').hide("slow");
                 $('#msgRechazados').hide("slow");
                 $('#msgAsignados').hide("slow");#}
@@ -233,6 +239,7 @@
            var tipoServicio=$("#cmb1").val();
            var fechaInicio=$("#fechaInicio").val();
            var fechaFin=$("#fechaFin").val();
+           var res="";
            
            if(fechaFin !="" && fechaInicio!="" && tipoServicio!="0"){
                 $.post(
@@ -245,11 +252,22 @@
                     }
                         , function( data ) {
                            console.log( data );
-                         $("#rangoTabla").html(data);
-                
+                           
+                            res=data.val;
+                           
+                           if(res=="0"){
+                               
+                               $("#msgIngresados2").show("slow");
+                           }              
+                                
+                           else
+                           {
+                              $("#rangoTabla").html(data);
+                           }
+                           
                     }, "json");
                     
-                    $('#msgIngresados').show("slow");
+                    
                 }
            
        }); 

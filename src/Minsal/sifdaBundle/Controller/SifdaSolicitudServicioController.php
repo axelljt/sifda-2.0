@@ -11,6 +11,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Minsal\sifdaBundle\Entity\SifdaSolicitudServicio;
 use Minsal\sifdaBundle\Form\SifdaSolicitudServicioType;
+use Symfony\Component\Validator\Constraints\Count;
 
 /**
  * SifdaSolicitudServicio controller.
@@ -204,9 +205,8 @@ class SifdaSolicitudServicioController extends Controller
          $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
          
          $objEstado1 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(1);
-         $ingresados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
-                                                                                    'idEstado' => $objEstado1
-                                                                                ),
+         $ingresados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(['idEstado' => $objEstado1,'idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()
+                                                                                    ],
                                                                                    array('fechaRecepcion' => 'DESC')
                                                                                 );
           
@@ -237,12 +237,11 @@ class SifdaSolicitudServicioController extends Controller
          $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
          
           $objEstado2 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(3);
-        $rechazados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(array(
-                                                                                    'idEstado' => $objEstado2
-                                                                                ),
+        $rechazados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(['idEstado' => $objEstado2,'idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()
+                                                                                    ],
                                                                                     array('fechaRecepcion' => 'DESC')
                                                                                 );
-          
+                
         return array(
             'entities' => $rechazados,
             'usuario'=>$usuario,
@@ -346,11 +345,25 @@ class SifdaSolicitudServicioController extends Controller
              $tipoServicio = $this->get('request')->request->get('tipoServicio');
              $em = $this->getDoctrine()->getManager();
              $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudIngresada($fechaInicio, $fechaFin,$tipoServicio);
-             $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesIngShow.html.twig' , array('solicitudes' =>$solicitudes));
-             $response = new JsonResponse();
-             return $response->setData($mensaje);
-        }else
-            {   return new Response('0');   }       
+            $tam= Count($solicitudes);
+             if($tam>0)
+                {
+                  $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesIngShow.html.twig' , array('solicitudes' =>$solicitudes));
+                  $response = new JsonResponse();
+                  return $response->setData($mensaje);
+                }else
+            {    $response = new JsonResponse();
+                 return $response->setData(array('val'=>0));
+                
+            }
+             
+            }
+        else
+            {    $response = new JsonResponse();
+                 return $response->setData(array('val'=>0));
+                
+            } 
+            
     }   
     
      /**
@@ -367,11 +380,25 @@ class SifdaSolicitudServicioController extends Controller
              $tipoServicio=$this->get('request')->request->get('tipoServicio');
              $em = $this->getDoctrine()->getManager();
              $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudRechazadas($fechaInicio, $fechaFin,$tipoServicio);
-             $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesRechShow.html.twig' , array('solicitudes' =>$solicitudes));
-             $response = new JsonResponse();
-             return $response->setData($mensaje);
-        }else
-            {   return new Response('0');   }       
+            
+              $tam= Count($solicitudes);
+             if($tam>0)
+                 {
+                     $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesRechShow.html.twig' , array('solicitudes' =>$solicitudes));
+                     $response = new JsonResponse();
+                     return $response->setData($mensaje);
+                 }
+             else{
+                    $response = new JsonResponse();
+                    return $response->setData(array('val'=>0));
+                 
+                 }
+           } 
+       else
+            {    $response = new JsonResponse();
+                 return $response->setData(array('val'=>0));
+                
+            }  
     }    
     
     /**

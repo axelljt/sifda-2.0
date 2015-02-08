@@ -25,7 +25,7 @@ class SifdaSolicitudServicioRepository extends EntityRepository
     /*Repositorio que consulta las solicitudes por rango de fechas*/
    public function FechaSolicitudRechazadas($fechaInicio, $fechaFin,$tipoServicio)
     {        
-       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion >= '$fechaInicio' AND s.fechaRecepcion <='$fechaFin' AND s.idTipoServicio='$tipoServicio' AND s.idEstado=2 ORDER BY s.fechaRecepcion DESC";	     
+       $dql = "SELECT s FROM MinsalsifdaBundle:SifdaSolicitudServicio s WHERE s.fechaRecepcion >= '$fechaInicio' AND s.fechaRecepcion <='$fechaFin' AND s.idTipoServicio='$tipoServicio' AND s.idEstado=3 ORDER BY s.fechaRecepcion DESC";	     
        $repositorio = $this->getEntityManager()->createQuery($dql);       
        return $repositorio->getResult();	
     }

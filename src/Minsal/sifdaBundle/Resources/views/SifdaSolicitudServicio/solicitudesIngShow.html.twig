@@ -12,6 +12,7 @@
                 </tr>
             </thead>
             
+            {%if solicitudes%}
             <tbody>{%for s in solicitudes%}
                 <tr>
                     <td>{{loop.index}}</td>
@@ -38,6 +39,13 @@
                 </tr>
                    {%endfor%}
             </tbody>
+            
+            {%else%}
+                
+                 <div id="msgIngresados2">
+                     <center><h4>No se encontraron solicitudes Ingresadas en este Rango</h4></center>
+                </div> 
+            {% endif%}
         </table>
     </div>
 </div>        
