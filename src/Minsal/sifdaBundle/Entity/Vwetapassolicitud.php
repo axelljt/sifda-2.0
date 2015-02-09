@@ -197,6 +197,17 @@ class Vwetapassolicitud {
      */
     private $nomEmpleado;
     
+     /**
+     * @var integer
+     *
+     * @ORM\Column(name="depen_estab", type="integer", nullable=false)
+     */
+    private $depenEstab;
+    
+    public function getDepenEstab() {
+        return $this->depenEstab;
+    }
+    
     public function getId() {
         return $this->id;
     }
@@ -301,6 +312,11 @@ class Vwetapassolicitud {
         return $this->nomEmpleado;
     }
 
+    
+    public function setDepenEstab($depenEstab) {
+        $this->depenEstab = $depenEstab;
+    }
+    
     public function setId($id) {
         $this->id = $id;
     }

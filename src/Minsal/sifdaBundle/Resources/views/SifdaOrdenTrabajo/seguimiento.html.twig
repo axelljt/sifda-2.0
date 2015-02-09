@@ -23,7 +23,8 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td><input type="submit" class="btn btn-primary" id="btnr1" value="PDF " name="GenerarPDF " onclick="window.open('/reports/solicitudesReport_ingresados.php?fi='+mostrarfi()+'&ff='+mostrarff())"></td>
+                            
+                            <td><input type="submit" class="btn btn-primary" id="btnr1" value="PDF " name="GenerarPDF " onclick="window.open('/reports/solicitudes_Asignadas.php?fi='+mostrarfi()+'&ff='+mostrarff()+'&tp='+mostrartipo()+'&user='+mostraruserid())"></td>
                             <td><input type="submit" class="btn btn-primary" id="btnr2" value="Excel " name="GenerarExcel "></td>
                         </tr>
                     </table>
@@ -310,5 +311,22 @@ $.datepicker.regional['es'] = {
                  }, "json");
             }
         });
+        
+        //Funciones para reporteria
+      function mostrarfi(){ 
+            return $("#fechaInicio").val();
+      }
+    
+      function mostrarff(){ 
+            return $("#fechaFin").val();
+      }
+      
+      function mostrartipo(){ 
+            return $("#cmb1").val();
+      } 
+      
+      function mostraruserid(){ 
+            return "{{usuario.id}}";
+      }
     </script>
     {% endblock%}  

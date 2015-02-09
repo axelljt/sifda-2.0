@@ -101,6 +101,31 @@ class SifdaOrdenTrabajoController extends Controller
     }
     
     /**
+     * Lists all SifdaOrdenTrabajo entities.
+     *
+     * @Route("/carga_laboral", name="sifda_ordentrabajo_cargalaboral")
+     * @Method("GET")
+     * @Template()
+     */
+    public function ordenAtendidaAction()
+    {
+        $em = $this->getDoctrine()->getManager();
+        $idusuario=1;
+        
+        $usuario= $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($idusuario);
+        
+        $entities = $em->getRepository('MinsalsifdaBundle:Vwetapassolicitud')->findBy(array(
+                                                                                    'depenEstab' => $usuario->getIdDependenciaEstablecimiento()
+                                                                                ),
+                                                                                    array('fchcreaOrden' => 'DESC'));
+        
+        return array(
+            'entities' => $entities,
+            'usuario'  => $usuario,
+        );
+    }
+    
+    /**
      * Creates a new SifdaOrdenTrabajo entity.
      *
      * @Route("/create/{id}", name="sifda_ordentrabajo_create")
