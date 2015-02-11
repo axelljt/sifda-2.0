@@ -17,7 +17,7 @@ class SifdaTipoServicioType extends AbstractType
         $builder
             ->add('nombre')
             ->add('descripcion')
-            ->add('idActividad')
+            //->add('idActividad')
         ;
     }
     

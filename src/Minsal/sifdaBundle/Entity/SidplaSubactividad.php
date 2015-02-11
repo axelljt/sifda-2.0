@@ -309,4 +309,9 @@ class SidplaSubactividad
     {
         return $this->idEmpleado;
     }
+    
+    public function __toString() 
+    {
+        return $this->descripcion;
+    }
 }

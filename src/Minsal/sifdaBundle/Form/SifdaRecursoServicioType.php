@@ -16,7 +16,7 @@ class SifdaRecursoServicioType extends AbstractType
     {
         $builder
             ->add('cantidad')
-            ->add('costoUnitario')
+            ->add('costoTotal')
             ->add('idInformeOrdenTrabajo')
             ->add('idTipoRecursoDependencia')
         ;

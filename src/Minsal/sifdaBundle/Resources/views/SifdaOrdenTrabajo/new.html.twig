@@ -23,11 +23,11 @@
                     <tbody>
                         <tr>
                             <th>Establecimiento</th>
-                            <td>{{ solicitud.idDependenciaEstablecimiento.idEstablecimiento.nombre }}</td>
+                            <td>{{ solicitud.user.idDependenciaEstablecimiento.idEstablecimiento.nombre }}</td>
                         </tr>
                         <tr>
-                            <th>Dependencia</th>
-                            <td>{{ solicitud.idDependenciaEstablecimiento.idDependencia.nombre }}</td>
+                            <th>Dependencia solicitante</th>
+                            <td>{{ solicitud.user.idDependenciaEstablecimiento.idDependencia.nombre }}</td>
                         </tr>
                         <tr>
                             <th>Tipo de servicio</th>
@@ -55,16 +55,17 @@
                         {{form_errors(form)}} 
                         <div class="row-fluid">
                             <div class="span4 offset2">
-                                {{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
-                                {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}
-                                {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
-                                {{form_row(form.idPrioridad)}}
-                            </div>
-                            <div class="span5 offset1"> 
                                 {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
                                 {% if subetapaEtapa %}
                                     {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}
                                 {% endif %}
+                                {#{{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
+                                {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}#}
+                                {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
+                                
+                            </div>
+                            <div class="span5 offset1"> 
+                                {{form_row(form.idPrioridad)}}
                                 {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
                                 {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
                             </div>
@@ -98,16 +99,17 @@
                     {{form_errors(form)}} 
                     <div class="row-fluid">
                         <div class="span4 offset2">
-                            {{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
-                            {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}
-                            {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
-                            {{form_row(form.idPrioridad)}}
-                        </div>
-                        <div class="span5 offset1"> 
                             {{form_row(form.idEtapa, {'attr': {'class':'span8'} })}}
                             {% if servicioSubetapa %}
                                 {{form_row(form.idSubEtapa, {'attr': {'class':'span8'} })}}
                             {% endif %}
+                            {#{{form_row(form.establecimiento, {'attr': {'class':'span10'} })}}
+                            {{form_row(form.dependencia, {'attr': {'class':'span10'} })}}#}
+                            {{form_row(form.descripcion, {'attr': {'class':'input-xlarge', 'placeholder': 'Descripcion de la orden de trabajo'} })}}
+                            
+                        </div>
+                        <div class="span5 offset1"> 
+                            {{form_row(form.idPrioridad)}}
                             {{form_row(form.observacion, {'attr': {'class':'input-xlarge', 'placeholder': 'Observacion sobre la orden de trabajo'} })}}
                             {{form_row(form.fechaFinalizacion,{'attr': {'readonly':'yes'} })}}
                         </div>

@@ -110,7 +110,7 @@ class SifdaOrdenTrabajoController extends Controller
     public function ordenAtendidaAction()
     {
         $em = $this->getDoctrine()->getManager();
-        $idusuario=1;
+        $idusuario=3;
         
         $usuario= $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($idusuario);
         
@@ -137,8 +137,11 @@ class SifdaOrdenTrabajoController extends Controller
     {
         $entity = new SifdaOrdenTrabajo();
         $form = $this->createCreateForm($entity, $id);
-        
+        $user = 3;
         $em = $this->getDoctrine()->getManager();
+        
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($user);
+        $entity->setIdDependenciaEstablecimiento($usuario->getIdDependenciaEstablecimiento());
         
         //Obtener la solicitud de servicio que se va a atender
         $idSolicitudServicio = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
@@ -147,19 +150,19 @@ class SifdaOrdenTrabajoController extends Controller
         $form->handleRequest($request);
         $parameters = $request->request->all();
         foreach($parameters as $p){
-            $idDependencia = $p['dependencia'];
-            $idEstablecimiento = $p['establecimiento'];
+//            $idDependencia = $p['dependencia'];
+//            $idEstablecimiento = $p['establecimiento'];
             $idEtapa = $p['idEtapa'];
         }
-        $idDependenciaEstablecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findOneBy(array(
-                                                           'idEstablecimiento' => $idEstablecimiento,
-                                                           'idDependencia' => $idDependencia         
-                                                            ));
-
-        if (!$idDependenciaEstablecimiento) {
-            throw $this->createNotFoundException('Unable to find CtlDependenciaEstablecimiento entity.');
-        }
-        $entity->setIdDependenciaEstablecimiento($idDependenciaEstablecimiento);
+//        $idDependenciaEstablecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findOneBy(array(
+//                                                           'idEstablecimiento' => $idEstablecimiento,
+//                                                           'idDependencia' => $idDependencia         
+//                                                            ));
+//
+//        if (!$idDependenciaEstablecimiento) {
+//            throw $this->createNotFoundException('Unable to find CtlDependenciaEstablecimiento entity.');
+//        }
+//        $entity->setIdDependenciaEstablecimiento($idDependenciaEstablecimiento);
         
         $idEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->findOneBy(array(
                                                             'descripcion'=>'Asignado'
@@ -167,7 +170,7 @@ class SifdaOrdenTrabajoController extends Controller
         
         
         //Generar el codigo que se le asignara a la orden de trabajo
-        $codigo = $this->generarCodigoOrden($idDependenciaEstablecimiento);
+        $codigo = $this->generarCodigoOrden($usuario->getIdDependenciaEstablecimiento());
         $entity->setCodigo($codigo);
         $validator = $this->get('validator');
         $errors = $validator->validate($entity);

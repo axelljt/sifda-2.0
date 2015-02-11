@@ -71,7 +71,7 @@
                                         <li>
                                             <a href="{{ path('sifda_rutaciclovida_show', { 'id': etapa.id }) }}">Mostrar detalle</a>
                                         </li>
-                                        {% if etapa.jerarquia > 1 %}
+                                        {#{% if etapa.jerarquia > 1 %}
                                             <li>
                                                 <a href="{{ path('sifdaetapa_subir', { 'id': etapa.id }) }}">Subir un nivel</a>
                                             </li>
@@ -80,7 +80,7 @@
                                             <li>
                                                 <a href="{{ path('sifdaetapa_bajar', { 'id': etapa.id }) }}">Bajar un nivel</a>
                                             </li>
-                                        {% endif %}
+                                        {% endif %}#}
                                     </ul>
                                     </td>
                                 </tr>

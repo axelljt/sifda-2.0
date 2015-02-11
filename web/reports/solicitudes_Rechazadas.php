@@ -150,7 +150,7 @@ $pdf->SetMargins(20,18);
 $pdf->AddPage("P","Letter");
 $pdf->SetFont('Arial','',11);
 
-$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda10022015', 'localhost');
+$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda10feb02015', 'localhost');
 $temp_fi = $_REQUEST['fi'];
 $temp_ff = $_REQUEST['ff'];
 $temp_tipo = $_REQUEST['tp'];

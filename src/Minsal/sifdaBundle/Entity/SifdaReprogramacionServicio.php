@@ -30,6 +30,13 @@ class SifdaReprogramacionServicio
     private $fechaReprogramacion;
 
     /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="fecha_anterior", type="date", nullable=true)
+     */
+    private $fechaAnterior;
+    
+    /**
      * @var string
      *
      * @ORM\Column(name="justificacion", type="text", nullable=false)
@@ -81,6 +88,29 @@ class SifdaReprogramacionServicio
         return $this->fechaReprogramacion;
     }
 
+    /**
+     * Set fechaAnterior
+     *
+     * @param \DateTime $fechaAnterior
+     * @return SifdaReprogramacionServicio
+     */
+    public function setFechaAnterior($fechaAnterior)
+    {
+        $this->fechaAnterior = $fechaAnterior;
+
+        return $this;
+    }
+    
+    /**
+     * Get fechaAnterior
+     *
+     * @return \DateTime 
+     */
+    public function getFechaAnterior()
+    {
+        return $this->fechaAnterior;
+    }
+    
     /**
      * Set justificacion
      *

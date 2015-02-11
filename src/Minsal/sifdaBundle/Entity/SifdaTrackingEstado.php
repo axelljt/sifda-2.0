@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * SifdaTrackingEstado
  *
- * @ORM\Table(name="sifda_tracking_estado", uniqueConstraints={@ORM\UniqueConstraint(name="idx_sifda_tracking_estado", columns={"id"})}, indexes={@ORM\Index(name="almacena_fk", columns={"id_estado"}), @ORM\Index(name="se_registra_fk", columns={"id_orden_trabajo"}), @ORM\Index(name="registra_etapa_fk", columns={"id_etapa"})})
+ * @ORM\Table(name="sifda_tracking_estado", uniqueConstraints={@ORM\UniqueConstraint(name="idx_tracking_estado", columns={"id"})}, indexes={@ORM\Index(name="almacena_fk", columns={"id_estado"}), @ORM\Index(name="se_registra_fk", columns={"id_orden_trabajo"}), @ORM\Index(name="registra_etapa_fk", columns={"id_etapa"})})
  * @ORM\Entity
  */
 class SifdaTrackingEstado

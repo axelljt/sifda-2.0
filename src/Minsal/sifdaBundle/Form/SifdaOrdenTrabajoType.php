@@ -33,18 +33,18 @@ class SifdaOrdenTrabajoType extends AbstractType
                         ->createQueryBuilder('dcat')
                         ->where('dcat.idCatalogo = 3');
             }))
-            ->add('dependencia','entity', array(
-                    'mapped'=>false,
-                    'empty_value'=>'Seleccione una dependencia',
-                    'class'=>'MinsalsifdaBundle:CtlDependencia',
-                    'choices' => array()
-                ))
-            ->add('establecimiento', 'entity', array(
-                    'label'         =>  'Establecimiento',
-                    'empty_value'=>'Seleccione un establecimiento',
-                    'class'         =>  'MinsalsifdaBundle:CtlEstablecimiento',
-                    'mapped' => false
-                ))
+//            ->add('dependencia','entity', array(
+//                    'mapped'=>false,
+//                    'empty_value'=>'Seleccione una dependencia',
+//                    'class'=>'MinsalsifdaBundle:CtlDependencia',
+//                    'choices' => array()
+//                ))
+//            ->add('establecimiento', 'entity', array(
+//                    'label'         =>  'Establecimiento',
+//                    'empty_value'=>'Seleccione un establecimiento',
+//                    'class'         =>  'MinsalsifdaBundle:CtlEstablecimiento',
+//                    'mapped' => false
+//                ))
             ->add('idEtapa', 'entity', array(
                     'label'         =>  'Etapa a realizar',
                     'class'         =>  'MinsalsifdaBundle:SifdaRutaCicloVida'))

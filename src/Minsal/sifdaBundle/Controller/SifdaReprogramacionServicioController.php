@@ -53,6 +53,9 @@ class SifdaReprogramacionServicioController extends Controller
         $idSolicitudServicio = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->find($id);
         $entity->setIdSolicitudServicio($idSolicitudServicio);
         
+        //Se establece la fecha de finalizacion anterior a serreprogramada
+        $entity->setFechaAnterior($idSolicitudServicio->getFechaRequiere());
+        
         $form->handleRequest($request);
 
         if ($form->isValid()) {

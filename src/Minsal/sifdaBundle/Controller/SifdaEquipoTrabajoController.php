@@ -52,6 +52,8 @@ class SifdaEquipoTrabajoController extends Controller
         $entity->setIdOrdenTrabajo($idOrdenTrabajo);
         $entity->setResponsableEquipo(TRUE);
         $form->handleRequest($request);
+        
+        
 
         if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager();
@@ -62,6 +64,34 @@ class SifdaEquipoTrabajoController extends Controller
             if($data){
                 $this->establecerEquipoTrabajo($idOrdenTrabajo, $data);
             }
+            
+            $equipoTrabajo = $em->getRepository('MinsalsifdaBundle:SifdaEquipoTrabajo')->findBy(array(
+                                                                        'idOrdenTrabajo' => $idOrdenTrabajo
+                    ));
+            
+            $correos = array();
+        
+            foreach ($equipoTrabajo as $value) {
+                $correos[] = $value->getIdEmpleado()->getCorreoElectronico();
+            }
+            
+            $texto = "";
+            
+            $texto.= 'Descripcion solicitud de servicio: '.$idOrdenTrabajo->getIdSolicitudServicio()->getDescripcion().' Descripcion'.$idOrdenTrabajo->getDescripcion();
+            
+            foreach ($correos as $correo){
+                    
+                $message = \Swift_Message::newInstance()
+                           ->setSubject('Asignacion de nueva orden de trabajo')
+                           ->setFrom('testing@sifda.gob.sv')
+                           ->setTo($correo)
+                           ->setBody($texto);
+                
+               $this->get('mailer')->send($message);     // then we send the message.
+            
+            }
+            
+            //ladybug_dump($correos);
             
             return $this->redirect($this->generateUrl('sifda_ordentrabajo_gestion'));
         }

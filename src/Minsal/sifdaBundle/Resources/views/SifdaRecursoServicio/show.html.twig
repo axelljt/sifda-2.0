@@ -1,9 +1,11 @@
-{% extends '::base.html.twig' %}
+{% extends 'MinsalsifdaBundle::layoutTecnico.html.twig' %}
 
-{% block body -%}
-    <h1>SifdaRecursoServicio</h1>
-
-    <table class="record_properties">
+{% block contenido_in -%}
+    <div class="page-header">
+            <center><h3>Mostrar recurso asignado a una orden de trabajo</h3></center>
+    </div>
+    
+    <table id="tabla" class="table table-bordered table-hover table-condensed">
         <tbody>
             <tr>
                 <th>Id</th>
@@ -14,8 +16,8 @@
                 <td>{{ entity.cantidad }}</td>
             </tr>
             <tr>
-                <th>Costounitario</th>
-                <td>{{ entity.costoUnitario }}</td>
+                <th>Costo total</th>
+                <td>{{ entity.costoTotal }}</td>
             </tr>
             <tr>
                 <th>Descripcion</th>
@@ -23,8 +25,22 @@
             </tr>
         </tbody>
     </table>
-
-        <ul class="record_actions">
+                    <div class="row-fluid">    
+                        <div class="span12">
+                        <br>
+                        <center>
+                            <table id="botones">
+                            <tr> 
+                               {#<td>{{form_row(form.submit,{'attr':{'class':'btn btn-primary'}})}}</td>#}
+                               <a href="{{ path('sifdarecursoservicio', { 'idInf': entity.idInformeOrdenTrabajo.id }) }}">
+                                </td>
+                            </tr>    
+                            </table>
+                        </center>
+                        <br>
+                        </div>
+                    </div>
+        {#<ul class="record_actions">
     <li>
         <a href="{{ path('sifdarecursoservicio', { 'idInf': entity.idInformeOrdenTrabajo.id }) }}">
             Back to the list
@@ -36,5 +52,5 @@
         </a>
     </li>
     <li>{{ form(delete_form) }}</li>
-</ul>
+</ul>#}
 {% endblock %}

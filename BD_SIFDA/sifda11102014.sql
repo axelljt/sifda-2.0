@@ -2366,12 +2366,12 @@ SELECT pg_catalog.setval('ctl_dependencia_id_seq', 1, true);
 --
 
 COPY ctl_empleado (id, id_dependencia_establecimiento, id_cargo, nombre, apellido, fecha_nacimiento, correo_electronico) FROM stdin;
-1	1	1	Juan	Roque	1985-01-12	roquej@gmail.com
-2	1	2	Saul	Aguilar	1991-08-09	saguilar@yahoo.es
-3	1	2	Carolina	Perez	1972-06-11	cperez@salud.gob
-5	1	2	Oscar	Jimenez	1979-10-21	jimenez.osc979@gmail.com
-4	1	2	Leticia	Salamanca	1988-04-12	letty.sal@gmail.com
-13	1	1	Emilio	Perla	1972-03-04	epeña@gmail.com
+1	4	1	Juan	Roque	1985-01-12	roquej@gmail.com
+2	4	2	Saul	Aguilar	1991-08-09	saguilar@yahoo.es
+3	4	2	Carolina	Perez	1972-06-11	cperez@salud.gob
+5	4	2	Oscar	Jimenez	1979-10-21	jimenez.osc979@gmail.com
+4	4	2	Leticia	Salamanca	1988-04-12	letty.sal@gmail.com
+35	1	1	Emilio	Perla	1972-03-04	epeña@gmail.com
 6	1	3	Marcos	Rivera	1986-10-24	mrivera@salud.gob
 7	1	3	Mauricio	Castro	1990-03-27	mcastro@salud.gob
 8	1	3	Karla	Guerrero	1984-03-03	kguerrero@salud.gob
@@ -2379,14 +2379,37 @@ COPY ctl_empleado (id, id_dependencia_establecimiento, id_cargo, nombre, apellid
 10	1	1	Martin	Reyes	1982-01-03	mreyes@gmail.com
 11	1	1	Carlos	Gutierrez	1982-06-01	cgutierres@gmail.com
 12	1	1	Pablo	Peña	1982-03-06	cpeña@gmail.com
+13	19	1	Luis Edgardo	Torres	1967-06-23	luised019_torres@hotmail.com
+14	19	1	Karla Maria	Zelaya	1983-01-02	km.zelaya020@gmail.com
+15	19	1	Teresa	Amaya	1994-12-18	nami.amaya94@yahoo.com
+16	19	2	Cesar Alejandro	Bonilla	1990-03-29	bonilla_cesale@hotmail.com
+17	19	2	Mario	Solorzano	1992-09-10	luigi.solorzano@gmail.com
+18	19	2	Claudia	Cruz	1989-07-27	ccruz@salud.gob.sv
+19	19	2	Carmen	Pineda de Melendez	1956-04-13	cpineda@salud.gob.sv
+20	4	2	Carolina	Perez	1972-06-11	cperez@salud.gob.sv
+21	19	2	Fatima Lissette	Godoy	1996-11-05	Fatyliss_god@hotmail.com
+22	19	2	Geovanny Misael	Carranza Segovia	1976-05-07	gcarranza@saud.gob.sv
+23	12	1	Raul Alexander	Menjivar Perez	1959-08-08	raul_menjivar@hotmail.com
+24	12	1	Vanessa 	Molina Rodriguez	1974-01-22	rodmolina@yahoo.es
+25	12	2	Rene Mauricio 	Santamaria	1983-07-19	santamaria.mau@gmail.com
+26	12	2	Daniela Raquel	Mendez Medina	1985-05-09	dany.mendez@gmail.com
+27	12	2	Carlos Rafael	Zepeda	1979-01-31	charly.zepeda.yahoo.com
+28	12	2	Victor	Gonzalez Zanabria	1989-11-26	victor_gonzalez@hotmail.com
+29	659	1	Elena Margarita	Sanchez	1961-04-28	margarita_sanchez@hotmail.com
+30	859	1	Juan Miguel	Diaz	1966-03-15	jmiguel.diaz@yahoo.es
+31	322	1	Wendy Lourdes	Cañas Escobar	1980-04-22	wescobar@yahoo.com
+32	101	1	Manuel de Jesus	Rivera Ruiz	1991-07-17	shus.rruiz@gmail.com
+33	19	2	Gerardo Eliseo	Serrano Castro	1984-10-16	madara.serrano@gmail.com
+34	12	2	William José	Mejia Batres	1987-08-24	will.mejia@gmail.com
 \.
+
 
 
 --
 -- Name: ctl_empleado_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('ctl_empleado_id_seq', 1, false);
+SELECT pg_catalog.setval('ctl_empleado_id_seq', 36, false);
 
 
 --
@@ -3124,11 +3147,6 @@ SELECT pg_catalog.setval('fos_user_user_id_seq', 3, true);
 --
 
 COPY sidpla_actividad (id, id_linea_estrategica, id_empleado, descripcion, codigo, activo, meta_anual, descripcion_meta_anual, indicador, medio_verificacion, generado) FROM stdin;
-1	1	1	Desarrollo de sistema de contabilidad	DESACONTA	t	5.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	t
-2	2	2	Desarrollo de sistema de contabilidad	DESACONTA	t	2.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	t
-3	3	3	Desarrollo de sistema de contabilidad	DESACONTA	t	3.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	t
-10	10	1	Desarrollo de sistema de contabilidad	DESACONTA	t	3.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	f
-11	11	1	Desarrollo de sistema de contabilidad	DESACONTA	t	3.00	Elaborar 5 sistemas de contabilidad	Cumplido	Reporte	f
 \.
 
 
@@ -3144,11 +3162,6 @@ SELECT pg_catalog.setval('sidpla_actividad_id_seq', 1, false);
 --
 
 COPY sidpla_linea_estrategica (id, id_dependencia_establecimiento, descripcion, codigo, activo, anio, recurrente) FROM stdin;
-2	1	Desarrollo Interno	DS2015	t	2014	t
-1	4	Mejora en el desarrollo de sistemas	DESA12	t	2013	t
-3	1	Desarrollo Interno	DS2015	t	2014	t
-10	1	Desarrollo Interno	DS2015	t	2016	t
-11	1	Desarrollo Interno	DS2015	t	2016	t
 \.
 
 
@@ -3209,9 +3222,6 @@ SELECT pg_catalog.setval('sifda_detalle_solicitud_servicio_id_seq', 1, false);
 --
 
 COPY sifda_equipo_trabajo (id, id_orden_trabajo, id_empleado, responsable_equipo) FROM stdin;
-2	1	2	t
-3	2	4	t
-48	79	1	t
 \.
 
 
@@ -3219,7 +3229,7 @@ COPY sifda_equipo_trabajo (id, id_orden_trabajo, id_empleado, responsable_equipo
 -- Name: sifda_equipo_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 48, true);
+SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 2, true);
 
 
 --
@@ -3227,7 +3237,6 @@ SELECT pg_catalog.setval('sifda_equipo_trabajo_id_seq', 48, true);
 --
 
 COPY sifda_informe_orden_trabajo (id, id_empleado, id_orden_trabajo, id_subactividad, id_dependencia_establecimiento, id_etapa, detalle, fecha_realizacion, fecha_registro, terminado) FROM stdin;
-1	1	1	\N	1	1	xxxxxxxxxxxxx	2014-11-09 00:00:00	2014-11-10 00:00:00	t
 \.
 
 
@@ -3243,9 +3252,6 @@ SELECT pg_catalog.setval('sifda_informe_orden_trabajo_id_seq', 1, true);
 --
 
 COPY sifda_orden_trabajo (id, id_solicitud_servicio, id_estado, id_etapa, id_dependencia_establecimiento, id_prioridad, descripcion, codigo, fecha_creacion, fecha_finalizacion, observacion) FROM stdin;
-2	2	2	2	1	11	daddad	MINFA00213	2013-12-13 00:00:00	2014-12-22 00:00:00	qwertyuiop
-1	2	4	1	4	9	realizar un analisis del sistema a desarrolar	MINFA00113	2013-11-13 00:00:00	\N	debe ir a la unidad
-79	87	2	1	4	9	Analisis de sistemas	MINDI00115	2015-02-07 16:28:30	\N	\N
 \.
 
 
@@ -3253,7 +3259,7 @@ COPY sifda_orden_trabajo (id, id_solicitud_servicio, id_estado, id_etapa, id_dep
 -- Name: sifda_orden_trabajo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_orden_trabajo_id_seq', 79, true);
+SELECT pg_catalog.setval('sifda_orden_trabajo_id_seq', 4, true);
 
 
 --
@@ -3276,8 +3282,6 @@ SELECT pg_catalog.setval('sifda_recurso_servicio_id_seq', 1, false);
 --
 
 COPY sifda_reprogramacion_servicio (id, id_solicitud_servicio, fecha_reprogramacion, justificacion) FROM stdin;
-1	5	2015-03-28	El servicio solicitado requiere tiempo
-2	4	2015-04-10	No se cuenta con los recursos para su desarrollo
 \.
 
 
@@ -3316,19 +3320,6 @@ COPY sifda_ruta (id, id_tipo_servicio, descripcion, tipo) FROM stdin;
 --
 
 COPY sifda_ruta_ciclo_vida (id, id_tipo_servicio, id_etapa, descripcion, referencia, jerarquia, ignorar_sig, peso) FROM stdin;
-5	1	\N	Implementacion	Puesta en marcha	5	f	15
-6	1	\N	Documentacion	Manuales técnico, de usuario y de instalación	6	t	10
-4	1	\N	Pruebas	Unitarias y funcionales	4	f	15
-2	1	\N	Diseño de sistemas	ademas abarca las pruebas	2	f	25
-1	1	\N	Analisis de sistemas	se debe realizar buena invetigacion	1	f	15
-3	1	\N	Construccion	Debe con herramientas libres	3	f	20
-7	1	1	Análisis de situación actual	investigación mediante observación, encuestas	1	f	45
-11	2	10	Análisis de situación actual	investigación mediante observación, encuestas	1	f	35
-13	2	11	asdd	sww	1	f	40
-8	1	1	dsdsd	dd	2	t	55
-9	2	\N	asdf	dsdd	1	f	60
-10	2	\N	asdd	sasa	2	t	40
-12	2	10	adasdsds	dssdsds	2	t	65
 \.
 
 
@@ -3336,14 +3327,14 @@ COPY sifda_ruta_ciclo_vida (id, id_tipo_servicio, id_etapa, descripcion, referen
 -- Name: sifda_ruta_ciclo_vida_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_ruta_ciclo_vida_id_seq', 13, true);
+SELECT pg_catalog.setval('sifda_ruta_ciclo_vida_id_seq', 3, true);
 
 
 --
 -- Name: sifda_ruta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_ruta_id_seq', 5, true);
+SELECT pg_catalog.setval('sifda_ruta_id_seq', 1, true);
 
 
 --
@@ -3351,14 +3342,6 @@ SELECT pg_catalog.setval('sifda_ruta_id_seq', 5, true);
 --
 
 COPY sifda_solicitud_servicio (id, id_tipo_servicio, user_id, id_dependencia_establecimiento, id_estado, id_medio_solicita, descripcion, fecha_recepcion, fecha_requiere) FROM stdin;
-1	7	1	92	1	5	Se requiere un sistema geografico que referencie las unidades de salud	2014-08-29 00:00:00	2014-11-17 00:00:00
-2	1	1	4	2	5	Sistema contable	2014-10-12 00:00:00	2015-03-07 00:00:00
-3	2	1	7	2	5	Pagina web para las farmacias	2014-11-19 00:00:00	2014-12-29 00:00:00
-4	4	1	20	2	5	Se necesita una aplicación para ver gastos desde el movil	2015-01-23 00:00:00	2015-03-02 00:00:00
-5	10	1	53	2	5	Desarrollo de sistema para control de medicinas	2015-01-23 00:00:00	2015-03-31 00:00:00
-87	1	\N	4	2	6	Desarrollar un sistema con su ciclo de vida	2015-02-07 16:28:30	\N
-88	5	\N	4	2	6	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo	2015-02-07 16:28:30	\N
-89	7	\N	4	2	6	XXXXXXXXXXXXXXXXXXXX	2015-02-07 16:28:30	\N
 \.
 
 
@@ -3366,7 +3349,7 @@ COPY sifda_solicitud_servicio (id, id_tipo_servicio, user_id, id_dependencia_est
 -- Name: sifda_solicitud_servicio_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_solicitud_servicio_id_seq', 89, true);
+SELECT pg_catalog.setval('sifda_solicitud_servicio_id_seq', 3, true);
 
 
 --
@@ -3404,18 +3387,7 @@ SELECT pg_catalog.setval('sifda_tipo_recurso_id_seq', 1, false);
 --
 
 COPY sifda_tipo_servicio (id, id_actividad, nombre, descripcion, activo, id_dependencia_establecimiento) FROM stdin;
-2	1	sistema contable de la Dir. de Regulacion	contara con catalogos, estado de resultados, balances, entre otros	t	2
-3	1	Sistema de contabilidad para UFI	el desarrollo de este sistema incluye contabilidad gnal y de costos	t	2
-4	1	Desarrollo de aplicacion movil	Desarrollo de aplicacion movil para movimientos contables	t	2
-6	1	xxxxx	yyyyyyyyyyyyyyyy	f	2
-8	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
-9	1	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	2
-10	1	Sistemas contables para UACI	adfqwert	t	2
-12	1	Para unidades de salud	asddffgghtrrtrt	t	2
-11	1	Sistema de contabilidad para unidades de salud	asddffgghtrrtrt	t	2
-1	1	Desarrollo de sistemas	Desarrollar un sistema con su ciclo de vida	t	4
-5	2	aplicacion movil para costeo	desarrollo  de aplicacion movil para q se pueda visualizar la forma de costeo	t	4
-7	3	Sistemas contables para ISSS	XXXXXXXXXXXXXXXXXXXX	t	4
+
 \.
 
 
@@ -3423,7 +3395,7 @@ COPY sifda_tipo_servicio (id, id_actividad, nombre, descripcion, activo, id_depe
 -- Name: sifda_tipo_servicio_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sifda
 --
 
-SELECT pg_catalog.setval('sifda_tipo_servicio_id_seq', 12, true);
+SELECT pg_catalog.setval('sifda_tipo_servicio_id_seq', 3, true);
 
 
 --

@@ -198,7 +198,7 @@ class SifdaSolicitudServicioController extends Controller
     public function solicitudesIngNewAction()
     {
             
-        $id_usuario=1;
+        $id_usuario=2;
         $em = $this->getDoctrine()->getManager();
         
          $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
@@ -346,7 +346,7 @@ class SifdaSolicitudServicioController extends Controller
              $em = $this->getDoctrine()->getManager();
              $solicitudes = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->FechaSolicitudIngresada($fechaInicio, $fechaFin,$tipoServicio);
             $tam= Count($solicitudes);
-             if($tam>0)
+            if($tam>0)
                 {
                   $mensaje = $this->renderView('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesIngShow.html.twig' , array('solicitudes' =>$solicitudes));
                   $response = new JsonResponse();
@@ -438,14 +438,14 @@ class SifdaSolicitudServicioController extends Controller
         $idEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->findOneBy(array('descripcion'=>'Ingresado'));
         
         $idMedioSolicita = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->findOneBy(array('descripcion'=>'Sistema'));
-        $idUser = $em->getRepository('MinsalsifdaBundle:FosUserUser')->findOneBy(array('username'=>'Minsal'));
+        $idUser = $em->getRepository('MinsalsifdaBundle:FosUserUser')->findOneBy(array('username'=>'anthony'));
         $entity->setIdEstado($idEstado);
         $entity->setIdMedioSolicita($idMedioSolicita);
         $entity->setUser($idUser);
         $entity->setFechaRecepcion(new \DateTime());
         $form->handleRequest($request);
         
-        
+       
         $idDependencia=$this->get('request')->request->get('dependencia');
         
         

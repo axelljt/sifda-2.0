@@ -129,4 +129,9 @@ class SifdaTipoRecursoDependencia
     {
         return $this->idTipoRecurso;
     }
+    
+    public function __toString() 
+    {
+        return $this->getIdTipoRecurso()->getNombre();
+    }
 }

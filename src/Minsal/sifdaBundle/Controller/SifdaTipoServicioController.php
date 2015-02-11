@@ -9,6 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Minsal\sifdaBundle\Entity\SifdaTipoServicio;
 use Minsal\sifdaBundle\Form\SifdaTipoServicioType;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * SifdaTipoServicio controller.
@@ -173,12 +174,30 @@ class SifdaTipoServicioController extends Controller
     */
     private function createEditForm(SifdaTipoServicio $entity)
     {
+        $userid = 3;
+        $em = $this->getDoctrine()->getManager();
+        $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($userid);
+        
+        
         $form = $this->createForm(new SifdaTipoServicioType(), $entity, array(
             'action' => $this->generateUrl('sifdatiposervicio_update', array('id' => $entity->getId())),
             'method' => 'PUT',
         ));
 
-        $form->add('submit', 'submit', array('label' => 'Update'));
+        $form->add('idActividad', 'entity', array(
+                'label' => 'Nombre de actividad',
+                //'empty_value'=>'Seleccione una actividad',
+                'class' => 'MinsalsifdaBundle:SidplaActividad',
+                'query_builder' =>  function(EntityRepository $repositorio) use ( $usuario ){
+                    return $repositorio
+                            ->createQueryBuilder('act')
+                            ->innerJoin('act.idLineaEstrategica', 'le')
+                            ->innerJoin('le.idDependenciaEstablecimiento', 'de')
+                            ->where('de.id = :dependenciaEstablecimiento')
+                            ->setParameter(':dependenciaEstablecimiento', $usuario->getIdDependenciaEstablecimiento());
+                    }));
+        
+        $form->add('submit', 'submit', array('label' => 'Actualizar tipo de servicio'));
 
         return $form;
     }

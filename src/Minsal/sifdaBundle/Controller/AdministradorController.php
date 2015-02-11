@@ -10,13 +10,14 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Minsal\sifdaBundle\Entity\SifdaSolicitudServicio;
 use Minsal\sifdaBundle\Form\SifdaSolicitudServicioType;
 use Doctrine\ORM\Query\ResultSetMapping;
+use Doctrine\ORM\EntityRepository;
 //use Minsal\sifdaBundle\Entity\Catalogo;
 //use Minsal\sifdaBundle\Form\CatalogoType;
 
 /**
  * Catalogo controller.
  *
- * @Route("/sifda/responsable")
+ * @Route("/sifda")
  */
 class AdministradorController extends Controller
 {
@@ -25,7 +26,7 @@ class AdministradorController extends Controller
      /**
      * Lists all SidplaLineaEstrategica entities.
      *
-     * @Route("/", name="sifda_responsable")
+     * @Route("/responsable", name="sifda_responsable")
      * @Method("GET")
      * @Template()
      */
@@ -55,13 +56,10 @@ class AdministradorController extends Controller
         );
     }
 
-    
-    
-
     /**
      * Lists all Catalogo entities.
      *
-     * @Route("/index", name="sifda_administrador2")
+     * @Route("/responsable/index", name="sifda_administrador2")
      * @Method("GET")
      * @Template()
      */
@@ -140,7 +138,7 @@ class AdministradorController extends Controller
     /**
      * Displays a form to create a new Catalogo entity.
      *
-     * @Route("/new", name="sifda_catalogo_new")
+     * @Route("/responsable/new", name="sifda_catalogo_new")
      * @Method("GET")
      * @Template()
      */
@@ -304,7 +302,7 @@ class AdministradorController extends Controller
    /**
      * Lists all SidplaLineaEstrategica entities.
      *
-     * @Route("/cargarPao", name="sifda_responsable_cargar_pao")
+     * @Route("/responsable/cargarPao", name="sifda_responsable_cargar_pao")
      * @Method("GET")
      * @Template()
      */
@@ -322,6 +320,48 @@ class AdministradorController extends Controller
         $bool = null;
 
         return $this->render('MinsalsifdaBundle:Administrador:PAO.html.twig',array('resultados'=>$resultados,'user' => $user));
+    }
+    
+    /**
+     * Lists all SidplaLineaEstrategica entities.
+     *
+     * @Route("/tecnico/index", name="sifda_tecnico")
+     * @Method("GET")
+     * @Template()
+     */
+    public function tecnicoAction()
+    {
+        $idusuario=4;
+        $rsm = new ResultSetMapping();
+        $em = $this->getDoctrine()->getManager();
+        $usuario= $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($idusuario);
+        
+        $fechaActual = new \DateTime();
+
+        $sql = "select count(ot.id) cantidad
+                from sifda_equipo_trabajo eq
+                inner join ctl_empleado emp on eq.id_empleado = emp.id
+                inner join sifda_orden_trabajo ot on eq.id_orden_trabajo = ot.id
+                where emp.id = ?
+                and to_char(ot.fecha_creacion, 'YYYY-MM-DD') = ?";
+        
+        $rsm->addScalarResult('cantidad','cantidad');
+        $query = $this->getDoctrine()->getEntityManager();
+        
+        $cantidad = $query->createNativeQuery($sql, $rsm)
+                    ->setParameter(1, $usuario->getIdEmpleado()->getId())
+                    ->setParameter(2, $fechaActual->format('Y-m-d'))
+                    ->getResult();
+        
+        if(!$cantidad)
+             {
+                throw $this->createNotFoundException('Unable to find CtlEmpleado entity.');
+             }
+        
+        return array(
+            'usuario'=>$usuario,
+            'numOrdenAsignada' => $cantidad[0]['cantidad']
+        );
     }
     
     
