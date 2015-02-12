@@ -1,5 +1,6 @@
 {% spaceless %}
-<div class="navbar navbar-inverse navbar-fixed-top">
+<div class="nav-wrapper">
+<div class="navbar " id="menux">
     <div class=" navbar-inner">
         <div class="container">
             <ul class="nav">
@@ -17,10 +18,33 @@
                          <li><a tabindex="-1" href="#">Another action</a></li>
                          <li><a tabindex="-1" href="#">Something else here</a></li>
                     </ul>#}
-                    </div>
+                    
      
             </ul>
+                            <ul class="nav navbar-nav pull-right">
+                <li ><a href="{{ path('fos_user_security_logout') }}" >Cerrar Sesion</a></li>
+             </ul>
 	</div>
     </div>
 </div>
+</div>
+<style>
+    #menux.affix{
+        top: 0;
+        width: 100%;
+    }
+    .nav-wrapper
+{
+    min-height:70px;
+}
+    
+</style>
+<script>
+    $('#menux').affix({
+      offset: {
+        top: 95
+      }      
+});
+</script>
 {% endspaceless %}
+
