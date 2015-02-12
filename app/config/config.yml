@@ -4,7 +4,7 @@ imports:
 
 framework:
     #esi:             ~
-    #translator:      { fallback: "%locale%" }
+    translator:      { fallback: "%locale%" }
     secret:          "%secret%"
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
@@ -78,3 +78,8 @@ swiftmailer:
     username:   ultimodelafilax
     password:   123456xxx
 #    delivery_address: wilx.sv@gmail.com
+
+fos_user:
+    db_driver: orm
+    firewall_name: main
+    user_class: Minsal\sifdaBundle\Entity\FosUserUser
