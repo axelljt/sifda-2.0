@@ -30,7 +30,7 @@
    <style type="text/css">
        body { 
             background-color: transparent;
-            padding-top: 70px;
+            
         }
         div {
           /*border: 1px solid #DEDEDE;*/
@@ -42,14 +42,16 @@
 
 <body>
 {% block body %}
-<div class="span12">
+<div>
     {% block banner %}
-    <center><img src="{{ asset('bundles/minsalsifda/images/banner.png') }}"/></center>
-              
-    {% endblock %}    
-    {% block menu %}  
+        <header ><center><img src="{{ asset('bundles/minsalsifda/images/banner.png') }}"/></center>
+        {% block menu %}  
         {% include "MinsalsifdaBundle:Menu:menuTecnico.html.twig" %}
     {% endblock %}
+        </header>
+              
+    {% endblock %}    
+    
 </div>
  {# BLOCK CONTENIDO#}        
  <div class="container-fluid">
@@ -66,10 +68,7 @@
      <div class="block-app">
      {% block content_error %} 
      {% block alert_step %}
-     <div class="alert alert-info" id="alert_step">
-         <button type="button" class="close" data-dismiss="alert">&times;</button>
-         <strong>Nota: </strong> Campos requeridos (*).
-     </div>
+     
      {% endblock %}
      {% block contenido_in %}
      {% endblock %}

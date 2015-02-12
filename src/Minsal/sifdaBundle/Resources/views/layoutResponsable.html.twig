@@ -30,7 +30,7 @@
    <style type="text/css">
        body { 
             background-color: transparent;
-            padding-top: 70px;
+            
         }
         div {
             //border: 1px solid #DEDEDE;
@@ -42,14 +42,14 @@
 
 <body>
 {% block body %}
-<div class="span12">
+<div>
     {% block banner %}
-    <center><img src="{{ asset('bundles/minsalsifda/images/banner.png') }}"/></center>
-              
-    {% endblock %}    
-    {% block menu %}  
+    <header><center><img src="{{ asset('bundles/minsalsifda/images/banner.png') }}"/></center>
+     {% block menu %}  
         {% include "MinsalsifdaBundle:Menu:menuResponsable.html.twig" %}
-    {% endblock %}
+    {% endblock %}         
+    {% endblock %}    
+    </header>
 </div>
  {# BLOCK CONTENIDO#}        
  <div class="container-fluid">

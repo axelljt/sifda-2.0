@@ -30,27 +30,32 @@
    <style type="text/css">
        body { 
             background-color: transparent;
-            
+            {#padding-top: 70px;#}
         }
-        div {
+        div {   
           //border: 1px solid #DEDEDE;
         }
    {% block stylesheets %}{% endblock %}
     </style>
 {% endblock %}
 </head>
-
 <body>
 {% block body %}
 <div>
     {% block banner %}
-        <header><center><img src="{{ asset('bundles/minsalsifda/images/banner.png') }}"/></center>
-    {% block menu %}  
-        {% include "MinsalsifdaBundle:Menu:menuSolicitante.html.twig" %}
-    {% endblock %}        
-    {% endblock %}    
-    </header>
+    <center><img src="{{ asset('bundles/minsalsifda/images/banner.png') }}"/></center>
+              
+    {% endblock %} 
+<div class="navbar">
+    <div class=" navbar-inner ">
+        <div class="container ">
+            <ul class="nav">
+                
+             </ul>    
+        </div>     
+    </div>
 </div>
+    </div>
  {# BLOCK CONTENIDO#}        
  <div class="container-fluid">
  <div class="row-fluid">
@@ -66,11 +71,41 @@
      <div class="block-app">
      {% block content_error %} 
      {% block alert_step %}
-     
+     <div class="alert alert-info" id="alert_step">
+         <button type="button" class="close" data-dismiss="alert">&times;</button>
+         <strong>Nota: </strong> Campos requeridos (*).
+     </div>
      {% endblock %}
-     {% block contenido_in %}
-     {% endblock %}
-     {% endblock %}
+{% block contenido_in %}
+    
+        <div>
+            {% if is_granted("IS_AUTHENTICATED_REMEMBERED") %}
+                {{ 'layout.logged_in_as'|trans({'%username%': app.user.username}, 'FOSUserBundle') }} |
+                <a href="{{ path('fos_user_security_logout') }}">
+                    {{ 'layout.logout'|trans({}, 'FOSUserBundle') }}
+                </a>
+            {% else %}
+                <a href="{{ path('fos_user_security_login') }}">{{ 'layout.login'|trans({}, 'FOSUserBundle') }}</a>
+            {% endif %}
+        </div>
+
+        {% for type, messages in app.session.flashBag.all %}
+            {% for message in messages %}
+                <div class="{{ type }}">
+                    {{ message|trans({}, 'FOSUserBundle') }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div>
+            {% block fos_user_content %}
+            {% endblock fos_user_content %}
+        </div>
+    </body>
+</html>
+
+ {% endblock%}
+ {% endblock %}
      </div>
      </div>
  {% endblock %} 
