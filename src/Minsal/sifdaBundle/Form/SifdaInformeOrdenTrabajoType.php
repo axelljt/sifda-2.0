@@ -15,17 +15,23 @@ class SifdaInformeOrdenTrabajoType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('detalle')
-            ->add('fechaRealizacion','date',array('input'=>'datetime','widget'=>'single_text',
-                  'format'=>'yyyy-MM-dd','attr'=>array('class'=>'date')))
-            ->add('fechaRegistro','date',array('input'=>'datetime','widget'=>'single_text',
-                  'format'=>'yyyy-MM-dd','attr'=>array('class'=>'date'))) 
-//            ->add('terminado')
-            ->add('idDependenciaEstablecimiento')
-            ->add('idEmpleado')
-            ->add('idOrdenTrabajo')    
-            ->add('idEtapa')
-            ->add('idSubactividad')
+            ->add('detalle', null, array('label'=>'Detalle del informe'))
+            ->add('fechaRealizacion','date',array(
+                  'label'=>'Fecha de realizacion',
+                  'input'  =>  'datetime',
+                  'widget' =>  'single_text',
+                  'format' =>  'yy-MM-dd',
+                  'attr'   =>  array('class'=>'date')))
+            ->add('terminado', 'choice', array(
+                    'multiple'  => false,
+                    'expanded'  => true,
+                    'required'  => true,
+                    'label'=>'Orden de trabajo finalizada',
+                    'choices'   => array(
+                        's' => 'Si',
+                        'n' => 'No'
+                    )))
+            //->add('idSubactividad')
         ;
     }
     

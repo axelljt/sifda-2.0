@@ -22,11 +22,12 @@ $this->Ln(2);
 
 $this->Ln(20);
 $this->SetFont('Arial','B',11);
-$this->Cell(0,25,utf8_decode('Reporte de Solicitudes Aprobadas'), 0, 0, 'C', false);
+$this->Cell(0,25,utf8_decode('Reporte de Ordenes Atendidas por Técnico'), 0, 0, 'C', false);
+
 $this->Ln(20);
 
-$this->SetWidths(array(5, 30, 36, 48, 25, 25));
-$this->Row(array('N',utf8_decode('Dependencia Solicitante'),utf8_decode('Tipo de servicio'),utf8_decode('Descripción'),utf8_decode('Fecha Requiere'),utf8_decode('Fecha Solicita')));
+$this->SetWidths(array(15, 50, 30, 30, 30));
+$this->Row(array('N',utf8_decode('Nombre del Técnico'),utf8_decode('Pendientes'),utf8_decode('Finalizadas'),utf8_decode('Ordenes Atendidas')));
 
 //$this->SetFont('Arial','',11);
 }
@@ -150,32 +151,34 @@ $pdf->SetMargins(20,18);
 $pdf->AddPage("P","Letter");
 $pdf->SetFont('Arial','',11);
 
-$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda10022015', 'localhost');
+$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda12022015', 'localhost');
 $temp_fi = $_REQUEST['fi'];
 $temp_ff = $_REQUEST['ff'];
-$temp_tipo = $_REQUEST['tp'];
-$temp_us = $_REQUEST['user'];
-if ($temp_ff ==0 and $temp_fi ==0 and $temp_tipo==0)
+//$temp_tipo = $_REQUEST['tp'];
+$temp_tdest = $_REQUEST['tdest'];
+if ($temp_ff ==0 and $temp_fi ==0)
     {
     //$datos = $conexion->get_results("SELECT descripcion,fecha_requiere,fecha_recepcion FROM public.sifda_solicitud_servicio where id_estado = 1 "); 
-    $datos = $conexion->get_results("SELECT dep.abreviatura,sts.nombre,ss.descripcion,ss.fecha_recepcion, ss.fecha_requiere
-  FROM public.sifda_solicitud_servicio ss
-inner join public.ctl_dependencia_establecimiento dep on (dep.id = ss.id_dependencia_establecimiento)
-inner join public.sifda_tipo_servicio sts on (sts.id = ss.id_tipo_servicio)
-inner join public.ctl_dependencia de on (de.id = dep.id_dependencia)
-where id_estado=2 and ss.user_id=$temp_us;");
+    $datos = $conexion->get_results("select distinct(e.id),e.nombre|| ' ' ||e.apellido as nombre,count(distinct id_orden) as atendidas,
+(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado) as pendientes,
+(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado) as finalizadas
+from ctl_empleado e left outer join vwetapassolicitud vw on e.id = vw.id_empleado
+where e.id_dependencia_establecimiento = $temp_tdest
+group by e.id,e.nombre|| ' ' ||e.apellido,(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado),
+(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado)
+order by (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado) desc");
     }
 else
     {//$datos = $conexion->get_results("SELECT descripcion,fecha_requiere,fecha_recepcion FROM public.sifda_solicitud_servicio where where id_estado = 1 and fecha_recepcion between '$temp_fi' and '$temp_ff'"); 
-        $datos = $conexion->get_results("SELECT dep.abreviatura,sts.nombre,ss.descripcion,ss.fecha_recepcion, ss.fecha_requiere
-  FROM public.sifda_solicitud_servicio ss
-inner join public.ctl_dependencia_establecimiento dep on (dep.id = ss.id_dependencia_establecimiento)
-inner join public.sifda_tipo_servicio sts on (sts.id = ss.id_tipo_servicio)
-inner join public.ctl_dependencia de on (de.id = dep.id_dependencia)
-where id_estado=2 
-and ss.user_id=$temp_us
-and ss.id_tipo_servicio = '$temp_tipo'
-and fecha_recepcion between '$temp_fi' and '$temp_ff'");
+    $datos = $conexion->get_results("select distinct(e.id),e.nombre|| ' ' ||e.apellido as nombre,count(distinct id_orden) as atendidas,
+(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado) as pendientes,
+(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado) as finalizadas
+from ctl_empleado e left outer join vwetapassolicitud vw on e.id = vw.id_empleado
+where fchcrea_orden >= $temp_fi and fchcrea_orden <= $temp_ff
+and e.id_dependencia_establecimiento = $temp_tdest
+group by e.id,e.nombre|| ' ' ||e.apellido,(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado),
+(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado)
+order by (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado) desc");
     }
 
 //$datos = $conexion->get_row("SELECT descripcion FROM public.sifda_solicitud_servicio where descripcion = 'test1'");
@@ -184,9 +187,9 @@ and fecha_recepcion between '$temp_fi' and '$temp_ff'");
 
 foreach ($datos as $value) {
   $item = $item +1;
-  $pdf->Row(array($item,utf8_decode($value->abreviatura),utf8_decode($value->nombre),
-			utf8_decode($value->descripcion),utf8_decode($value->fecha_recepcion),
-                        utf8_decode($value->fecha_requiere)
+  $pdf->Row(array($item,utf8_decode($value->nombre),$value->pendientes,
+                        utf8_decode($value->finalizadas),
+			utf8_decode($value->atendidas)
           ));  
 }
 

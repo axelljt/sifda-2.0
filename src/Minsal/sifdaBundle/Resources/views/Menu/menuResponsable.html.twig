@@ -10,7 +10,8 @@
                                 <li><a tabindex="-1" href="{{path('sifda_solicitudes_ingresadas2')}}">Ingresadas</a></li>
                                 <li><a tabindex="-2" href="{{path('sifda_solicitudes_rechazadas2')}}">Rechazadas</a></li>
                                 <li><a tabindex="-3" href="{{path('sifda_solicitudes_reprogramadas')}}">Reprogramadas</a></li>
-                                <li><a tabindex="-4" href="{{path('sifda_solicitudes_fializadas2')}}">Finalizadas</a></li>                        
+                                <li><a tabindex="-4" href="{{path('sifda_solicitudes_fializadas2')}}">Finalizadas</a></li>
+                                <li><a tabindex="-5" href="{{path('sifda_solicitudes_consolidadas')}}">Consolidado</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -29,7 +30,8 @@
                             <li><a tabindex="-2" href="{{path('sifda_ordentrabajo_gestion')}}">Gestionar Ordenes de Trabajo</a></li>
                             <li><a tabindex="-3" href="{{path('sifda_seguimiento')}}">Seguimiento de Ordenes de Trabajo</a></li>
                                 {#<li><a tabindex="-4" href="">Gestion de recursos</a></li>#}
-                            <li><a tabindex="-4" href="{{path('sifda_ordentrabajo_cargalaboral')}}">Consultar Carga Laboral por Tecnico</a></li>
+                            <li><a tabindex="-4" href="{{path('sifda_carga')}}">Consultar Carga Laboral por Tecnico</a></li>
+                            
                         </ul>
                         </li>
                         <li class="dropdown">
@@ -49,7 +51,7 @@
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">ESTABLECIMIENTO <span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li><a tabindex="-1" href="">Gestion de Establecimiento</a></li>
+                                <li><a tabindex="-1" href={{path('sifda_ctlestablecimiento')}}>Gestion de Establecimiento</a></li>
                                 <li><a tabindex="-2" href="">Gestion de Establecimiento Dependencia</a></li>                        
                             </ul>
                         </li>
@@ -66,8 +68,7 @@
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">PAO <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a tabindex="-1" href="{{path('sifda_responsable_cargar_pao')}}">Cargar PAO</a></li>
-                                <li><a tabindex="-2" href="{{path('sifda_prueba')}}">XXXXXXXX</a></li>
-                                <li><a tabindex="-3" href="#">Registrar Ordenes PAO</a></li>
+                                {#<li><a tabindex="-2" href="{{path('cargar_solicitudes_pao')}}">Registrar Ordenes PAO</a></li>#}
                                     {#<li><a tabindex="-4" href="">Gestion de tipo se servicio</a></li>
                                     <li><a tabindex="-5" href={{path('sifda_solicitudservicio')}}>Consultar solicitud de servicio</a></li>#}                        
                             </ul>

@@ -9,6 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Minsal\sifdaBundle\Entity\SifdaOrdenTrabajo;
 use Minsal\sifdaBundle\Form\SifdaOrdenTrabajoType;
 use Minsal\sifdaBundle\Entity\Vwetapassolicitud;
@@ -30,14 +31,39 @@ class SifdaOrdenTrabajoController extends Controller
      */
     public function indexAction()
     {
+        $userId = 7;
+        $rsm = new ResultSetMapping();
         $em = $this->getDoctrine()->getManager();
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($userId);
+        $asignado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(2);
 
-        $entities = $em->getRepository('MinsalsifdaBundle:SifdaOrdenTrabajo')->findAll();
-
+        $sql = "select ot.id id, ot.descripcion descripcion, ot.codigo codigo, 
+                       ot.fecha_creacion fechacreacion, ot.fecha_finalizacion fechafinalizacion,
+                       ot.observacion observacion
+                from sifda_equipo_trabajo eq
+                inner join ctl_empleado emp on eq.id_empleado = emp.id
+                inner join sifda_orden_trabajo ot on eq.id_orden_trabajo = ot.id
+                where emp.id = ?
+                and ot.id_estado = ?";
+        
+        $rsm->addScalarResult('id','id');
+        $rsm->addScalarResult('descripcion','descripcion');
+        $rsm->addScalarResult('codigo','codigo');
+        $rsm->addScalarResult('fechacreacion','fechacreacion');
+        $rsm->addScalarResult('fechafinalizacion','fechafinalizacion');
+        $rsm->addScalarResult('observacion','observacion');
+        
+        $entities = $em->createNativeQuery($sql, $rsm)
+                    ->setParameter(1, $usuario->getIdEmpleado()->getId())
+                    ->setParameter(2, $asignado->getId())
+                    ->getResult();
+        
         return array(
             'entities' => $entities,
+            'usuario'  => $usuario,
         );
     }
+    
         /**
      * Lists all SifdaOrdenTrabajo entities.
      *
@@ -150,20 +176,9 @@ class SifdaOrdenTrabajoController extends Controller
         $form->handleRequest($request);
         $parameters = $request->request->all();
         foreach($parameters as $p){
-//            $idDependencia = $p['dependencia'];
-//            $idEstablecimiento = $p['establecimiento'];
             $idEtapa = $p['idEtapa'];
         }
-//        $idDependenciaEstablecimiento = $em->getRepository('MinsalsifdaBundle:CtlDependenciaEstablecimiento')->findOneBy(array(
-//                                                           'idEstablecimiento' => $idEstablecimiento,
-//                                                           'idDependencia' => $idDependencia         
-//                                                            ));
-//
-//        if (!$idDependenciaEstablecimiento) {
-//            throw $this->createNotFoundException('Unable to find CtlDependenciaEstablecimiento entity.');
-//        }
-//        $entity->setIdDependenciaEstablecimiento($idDependenciaEstablecimiento);
-        
+
         $idEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->findOneBy(array(
                                                             'descripcion'=>'Asignado'
                                                             ));
@@ -403,7 +418,7 @@ class SifdaOrdenTrabajoController extends Controller
                                                                                 ));
                 
                 $form   = $this->createCreateForm($entity, $id);
-                //ladybug_dump($servicioSubetapa);
+                
                 return array(
                     'entity'           => $entity,
                     'solicitud'        => $solicitud,

@@ -1,64 +1,74 @@
 {% extends 'MinsalsifdaBundle::layoutTecnico.html.twig' %}
 
 {% block contenido_in -%}
-    <center><h3>Mostrar Informes de Orden de Trabajo</h3></center>
-<table id="tabla" class="table table-bordered table-hover table-condensed">
+    <div class="page-header">
+        <center><h3>Mostrar los informes de la orden de trabajo</h3></center>
+    </div>
+    <div class="span11">
+    <table id="tabla" class="table table-bordered table-hover table-condensed">
         <tbody>
             <tr>
-                <th>Id Orden de trabajo</th>
-                <td>{{ orden.id }}</td>
+                <th>C&oacute;digo</th>
+                <td>{{ orden.codigo }}</td>
             </tr>
             <tr>
-                <th>Descripcion</th>
+                <th>Descripci&oacute;n de orden de trabajo</th>
                 <td>{{ orden.descripcion }}</td>
             </tr>
             <tr>
-                <th>Codigo</th>
-                <td>{{ orden.codigo }}</td>
+                <th>Prioridad</th>
+                <td>{{ orden.idPrioridad }}</td>
             </tr>
-            
             <tr>
-                <th>Observacion</th>
-                <td>{{ orden.observacion }}</td>
+                <th>Fecha de finalizaci&oacute;n</th>
+                <td>{% if orden.fechafinalizacion %}{{ orden.fechafinalizacion|date('d/m/Y') }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Observaci&oacute;n</th>
+                <td>{% if orden.observacion %}{{ orden.observacion }}{%else%}No tiene{%endif %}</td>
             </tr>
         </tbody>
     </table>
+    </div>
+    <br><br>
     <table id="tabla" class="table table-bordered table-hover table-condensed">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Detalle</th>
-                <th>Fecharealizacion</th>
-                <th>Fecharegistro</th>
+                <th>No.</th>
+                <th><center>Detalle del informe</center></th>
+                <th>Fecha de realizaci&oacute;n</th>
+                <th>Fecha de registro</th>
                 <th>Terminado</th>
-                <th>Actions</th>
+                <th><center>Acciones</center></th>
             </tr>
         </thead>
         <tbody>
+        {% set corr = 1 %}    
         {% for entity in entities %}
             <tr>
-                <td><a href="{{ path('sifdainformeordentrabajo_show', { 'id': entity.id }) }}">{{ entity.id }}</a></td>
+                <td>{{ corr }}</td>
                 <td>{{ entity.detalle }}</td>
-                <td>{% if entity.fechaRealizacion %}{{ entity.fechaRealizacion|date('Y-m-d H:i:s') }}{% endif %}</td>
-                <td>{% if entity.fechaRegistro %}{{ entity.fechaRegistro|date('Y-m-d H:i:s') }}{% endif %}</td>
-                <td>{{ entity.terminado }}</td>
+                <td><center>{% if entity.fechaRealizacion %}{{ entity.fechaRealizacion|date('d/m/Y') }}{% endif %}</center></td>
+                <td>{% if entity.fechaRegistro %}{{ entity.fechaRegistro|date('d/m/Y H:i:s') }}{% endif %}</td>
+                <td><center>{% if entity.terminado == 1%}Si{%else%}No{%endif %}</center></td>
                 <td>
                 <ul>
                     <li>
-                        <a href="{{ path('sifdainformeordentrabajo_show', { 'id': entity.id }) }}">show</a>
+                        <a href="{{ path('sifdainformeordentrabajo_show', { 'id': entity.id }) }}">Mostrar</a>
                     </li>
                     <li>
-                        <a href="{{ path('sifdainformeordentrabajo_edit', { 'id': entity.id }) }}">edit</a>
+                        <a href="{{ path('sifdainformeordentrabajo_edit', { 'id': entity.id }) }}">Modificar informe</a>
                     </li>
                     <li>
-                        <a href="{{ path('sifdarecursoservicio_new', { 'id': entity.id }) }}">nuevo Recurso</a>
+                        <a href="{{ path('sifdarecursoservicio_new', { 'id': entity.id }) }}">Registrar recursos</a>
                     </li>
                     <li>
-                        <a href="{{ path('sifdarecursoservicio', { 'idInf': entity.id }) }}">listar Recursos</a>
+                        <a href="{{ path('sifdarecursoservicio', { 'idInf': entity.id }) }}">Listar recursos</a>
                     </li>
                 </ul>
                 </td>
             </tr>
+            {% set corr = corr + 1 %}
         {% endfor %}
         </tbody>
     </table>

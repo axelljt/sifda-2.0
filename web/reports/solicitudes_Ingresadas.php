@@ -150,7 +150,7 @@ $pdf->SetMargins(20,18);
 $pdf->AddPage("P","Letter");
 $pdf->SetFont('Arial','',11);
 
-$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda10feb02015', 'localhost');
+$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda12022015', 'localhost');
 $temp_fi = $_REQUEST['fi'];
 $temp_ff = $_REQUEST['ff'];
 $temp_tipo = $_REQUEST['tp'];
@@ -160,20 +160,22 @@ if ($temp_ff ==0 and $temp_fi ==0 and $temp_tipo==0)
     //$datos = $conexion->get_results("SELECT descripcion,fecha_requiere,fecha_recepcion FROM public.sifda_solicitud_servicio where id_estado = 1 "); 
     $datos = $conexion->get_results("SELECT dep.abreviatura,sts.nombre,ss.descripcion,ss.fecha_recepcion, ss.fecha_requiere
   FROM public.sifda_solicitud_servicio ss
+    inner join public.fos_user_user us on (us.id = ss.user_id)
 inner join public.ctl_dependencia_establecimiento dep on (dep.id = ss.id_dependencia_establecimiento)
 inner join public.sifda_tipo_servicio sts on (sts.id = ss.id_tipo_servicio)
 inner join public.ctl_dependencia de on (de.id = dep.id_dependencia)
-where id_estado=1 and ss.user_id=$temp_us;");
+where id_estado=1 and ss.user_id=2;");
     }
 else
     {//$datos = $conexion->get_results("SELECT descripcion,fecha_requiere,fecha_recepcion FROM public.sifda_solicitud_servicio where where id_estado = 1 and fecha_recepcion between '$temp_fi' and '$temp_ff'"); 
         $datos = $conexion->get_results("SELECT dep.abreviatura,sts.nombre,ss.descripcion,ss.fecha_recepcion, ss.fecha_requiere
   FROM public.sifda_solicitud_servicio ss
+    inner join public.fos_user_user us on (us.id = ss.user_id)
 inner join public.ctl_dependencia_establecimiento dep on (dep.id = ss.id_dependencia_establecimiento)
 inner join public.sifda_tipo_servicio sts on (sts.id = ss.id_tipo_servicio)
 inner join public.ctl_dependencia de on (de.id = dep.id_dependencia)
 where id_estado=1 
-and ss.user_id=$temp_us
+and ss.user_id=2
 and ss.id_tipo_servicio = '$temp_tipo'
 and fecha_recepcion between '$temp_fi' and '$temp_ff'");
     }

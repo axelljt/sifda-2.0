@@ -25,7 +25,7 @@ class DefaultController extends Controller
         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($user->getId());
         $rol = $usuario->getRoles()[0];
         if ($rol == "ROLE_TECNICO"){
-        return $this->redirect($this->generateUrl('sifda_ordentrabajo'));
+        return $this->redirect($this->generateUrl('sifda_tecnico'));
         } else if ($rol == "ROLE_SOLICITANTE"){
 //        return $this->redirect($this->generateUrl('sifda_solicitudservicio'));
         return $this->redirect($this->generateUrl('sifda_solicitudservicio'));

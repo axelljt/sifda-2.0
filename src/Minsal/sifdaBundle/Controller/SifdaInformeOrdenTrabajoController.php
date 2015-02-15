@@ -43,22 +43,73 @@ class SifdaInformeOrdenTrabajoController extends Controller
     /**
      * Creates a new SifdaInformeOrdenTrabajo entity.
      *
-     * @Route("/", name="sifdainformeordentrabajo_create")
+     * @Route("/create/{id}", name="sifdainformeordentrabajo_create")
      * @Method("POST")
      * @Template("MinsalsifdaBundle:SifdaInformeOrdenTrabajo:new.html.twig")
      */
-    public function createAction(Request $request)
+    public function createAction(Request $request, $id)
     {
         
         $entity = new SifdaInformeOrdenTrabajo();
-        $form = $this->createCreateForm($entity);
+        $form = $this->createCreateForm($entity, $id);
+        
+        $user = 7;
+        $em = $this->getDoctrine()->getManager();
+        
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($user);
+        if (!$usuario) {
+            throw $this->createNotFoundException('Unable to find FosUserUser entity.');
+        }
+        $entity->setIdDependenciaEstablecimiento($usuario->getIdDependenciaEstablecimiento());
+        
+        $idEmpleado = $em->getRepository('MinsalsifdaBundle:CtlEmpleado')->find($usuario->getIdEmpleado()->getId());
+        if (!$idEmpleado) {
+            throw $this->createNotFoundException('Unable to find CtlEmpleado entity.');
+        }
+        $entity->setIdEmpleado($idEmpleado);
+        
+        if ($id != 0) {
+            $em = $this->getDoctrine()->getManager();
+
+            $orden = $em->getRepository('MinsalsifdaBundle:SifdaOrdenTrabajo')->find($id);
+
+            if (!$orden) {
+                throw $this->createNotFoundException('Unable to find SifdaOrdenTrabajo entity.');
+            }
+            $entity->setIdOrdenTrabajo($orden);
+        }
+        
+        $idEtapa = $em->getRepository('MinsalsifdaBundle:SifdaRutaCicloVida')->find($orden->getIdEtapa());
+        if (!$idEtapa) {
+            throw $this->createNotFoundException('Unable to find SifdaRutaCicloVida entity.');
+        }
+        $entity->setIdEtapa($idEtapa->getId());
+        
         $form->handleRequest($request);
 
         if ($form->isValid()) {
+            $entity->setFechaRegistro(new \DateTime("now"));
+            
+            $terminado = $form->get('terminado')->getData();
+            if ($terminado  == 's') {
+                $entity->setTerminado(TRUE);
+                
+            }
             $em = $this->getDoctrine()->getManager();
             $em->persist($entity);
             $em->flush();
-
+            
+            if ($terminado  == 's') {
+                $estado = $orden->getIdEstado()->getId();
+                
+                if($estado==2) {
+                    $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(4);
+                    $orden->setIdEstado($objEstado);
+                    $em->merge($orden);
+                    $em->flush();
+                } 
+            }
+                
             return $this->redirect($this->generateUrl('sifdainformeordentrabajo_show', array('id' => $entity->getId())));
         }
         
@@ -73,17 +124,18 @@ class SifdaInformeOrdenTrabajoController extends Controller
      * Creates a form to create a SifdaInformeOrdenTrabajo entity.
      *
      * @param SifdaInformeOrdenTrabajo $entity The entity
+     * @param mixed $id The entity id
      *
      * @return \Symfony\Component\Form\Form The form
      */
-    private function createCreateForm(SifdaInformeOrdenTrabajo $entity)
+    private function createCreateForm(SifdaInformeOrdenTrabajo $entity, $id)
     {
         $form = $this->createForm(new SifdaInformeOrdenTrabajoType(), $entity, array(
-            'action' => $this->generateUrl('sifdainformeordentrabajo_create'),
+            'action' => $this->generateUrl('sifdainformeordentrabajo_create', array('id' => $id)),
             'method' => 'POST',
         ));
 
-        $form->add('submit', 'submit', array('label' => 'Create'));
+        $form->add('submit', 'submit', array('label' => 'Registrar informe'));
 
         return $form;
     }
@@ -108,10 +160,8 @@ class SifdaInformeOrdenTrabajoController extends Controller
             if (!$orden) {
                 throw $this->createNotFoundException('Unable to find SifdaInformeOrdenTrabajo entity.');
             }
-            $entity->setIdOrdenTrabajo($orden);
         }
-        $entity->setFechaRegistro(new \DateTime());
-        $form = $this->createCreateForm($entity);
+        $form = $this->createCreateForm($entity, $id);
         return array(
             'entity' => $entity,
             'orden' => $orden,
@@ -188,7 +238,7 @@ class SifdaInformeOrdenTrabajoController extends Controller
             'method' => 'PUT',
         ));
 
-        $form->add('submit', 'submit', array('label' => 'Update'));
+        $form->add('submit', 'submit', array('label' => 'Actualizar informe'));
 
         return $form;
     }
@@ -214,8 +264,35 @@ class SifdaInformeOrdenTrabajoController extends Controller
         $editForm->handleRequest($request);
 
         if ($editForm->isValid()) {
+            
+            $terminado = $editForm->get('terminado')->getData();
+            if ($terminado  == 's') {
+                $entity->setTerminado(TRUE);
+            }
+            else {
+                $entity->setTerminado(FALSE);
+            }
+            
             $em->flush();
-
+            
+            $estado = $entity->getIdOrdenTrabajo()->getIdEstado()->getId();
+            if ($terminado  == 's') {
+                if($estado==2) {
+                    $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(4);
+                    $entity->setIdEstado($objEstado);
+                    $em->merge($entity);
+                    $em->flush();
+                } 
+            }
+            else {
+                if($estado==4) {
+                    $objEstado = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(2);
+                    $entity->setIdEstado($objEstado);
+                    $em->merge($entity);
+                    $em->flush();
+                } 
+            }
+            
             return $this->redirect($this->generateUrl('sifdainformeordentrabajo_edit', array('id' => $id)));
         }
 
@@ -264,7 +341,7 @@ class SifdaInformeOrdenTrabajoController extends Controller
         return $this->createFormBuilder()
             ->setAction($this->generateUrl('sifdainformeordentrabajo_delete', array('id' => $id)))
             ->setMethod('DELETE')
-            ->add('submit', 'submit', array('label' => 'Delete'))
+            ->add('submit', 'submit', array('label' => 'Eliminar informe'))
             ->getForm()
         ;
     }

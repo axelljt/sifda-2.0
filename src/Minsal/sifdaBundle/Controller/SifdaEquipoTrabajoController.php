@@ -7,6 +7,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Minsal\sifdaBundle\Entity\SifdaEquipoTrabajo;
 use Minsal\sifdaBundle\Form\SifdaEquipoTrabajoType;
 
@@ -52,8 +54,6 @@ class SifdaEquipoTrabajoController extends Controller
         $entity->setIdOrdenTrabajo($idOrdenTrabajo);
         $entity->setResponsableEquipo(TRUE);
         $form->handleRequest($request);
-        
-        
 
         if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager();
@@ -70,13 +70,11 @@ class SifdaEquipoTrabajoController extends Controller
                     ));
             
             $correos = array();
-        
             foreach ($equipoTrabajo as $value) {
                 $correos[] = $value->getIdEmpleado()->getCorreoElectronico();
             }
             
             $texto = "";
-            
             $texto.= 'Descripcion solicitud de servicio: '.$idOrdenTrabajo->getIdSolicitudServicio()->getDescripcion().' Descripcion'.$idOrdenTrabajo->getDescripcion();
             
             foreach ($correos as $correo){
@@ -86,12 +84,9 @@ class SifdaEquipoTrabajoController extends Controller
                            ->setFrom('testing@sifda.gob.sv')
                            ->setTo($correo)
                            ->setBody($texto);
-                
-               $this->get('mailer')->send($message);     // then we send the message.
+                $this->get('mailer')->send($message);     // then we send the message.
             
             }
-            
-            //ladybug_dump($correos);
             
             return $this->redirect($this->generateUrl('sifda_ordentrabajo_gestion'));
         }
@@ -116,6 +111,38 @@ class SifdaEquipoTrabajoController extends Controller
             'action' => $this->generateUrl('sifda_equipotrabajo_create', array('id' => $id)),
             'method' => 'POST',
         ));
+        
+        $userId = 9;
+        $em = $this->getDoctrine()->getManager();
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($userId);
+        
+        $form->add('idEmpleado', 'entity', array(
+                'label'     => 'Responsable',
+                'class'     => 'MinsalsifdaBundle:CtlEmpleado',
+                'query_builder' =>  function(EntityRepository $repositorio) use ($usuario) {
+                    return $repositorio
+                        ->createQueryBuilder('emp')
+                        ->where('emp.idDependenciaEstablecimiento = :de')
+                        ->setParameter(':de', $usuario->getIdDependenciaEstablecimiento()->getId());
+            }
+                ));
+        
+        $form->add('equipoTrabajo', 'entity', array(
+                    'label'         =>  'Seleccione equipo de trabajo',
+                    'class'         =>  'MinsalsifdaBundle:CtlEmpleado',
+                    'multiple'  => true,
+                    'expanded'  => true,
+                    'required'  => false,
+                    'mapped' => false,
+                    'query_builder' =>  function(EntityRepository $repositorio) use ($usuario) {
+                    return $repositorio
+                        ->createQueryBuilder('emp')
+                        ->where('emp.idDependenciaEstablecimiento = :de')
+                        ->setParameter(':de', $usuario->getIdDependenciaEstablecimiento()->getId());
+            }
+                ))    
+                ;
+        
         $form->add('submit', 'submit', array('label' => 'Registrar personal'));
 
         return $form;
@@ -140,7 +167,32 @@ class SifdaEquipoTrabajoController extends Controller
             }
         }
         
-        $empleados = $em->getRepository('MinsalsifdaBundle:CtlEmpleado')->findAll();
+        $userId = 9;
+        $rsm = new ResultSetMapping();
+        $em = $this->getDoctrine()->getManager();
+        $usuario = $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($userId);
+        
+        $sql = "select distinct(e.id),e.nombre|| ' ' ||e.apellido as nombre,count(distinct id_orden) as atendidas,
+                (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado) as pendientes,
+                (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado) as finalizadas
+                from ctl_empleado e left outer join vwetapassolicitud vw on e.id = vw.id_empleado
+                where e.id_dependencia_establecimiento = ?
+                group by e.id,e.nombre|| ' ' ||e.apellido,(select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado),
+                (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado)
+                order by count(distinct id_orden) desc,
+                (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 2 and v.id_empleado = vw.id_empleado) desc,
+                (select count(distinct v.id_orden) from vwetapassolicitud v where v.id_estado = 4 and v.id_empleado = vw.id_empleado) desc";
+        
+        $rsm->addScalarResult('id','id');
+        $rsm->addScalarResult('nombre','nombre');
+        $rsm->addScalarResult('atendidas','atendidas');
+        $rsm->addScalarResult('pendientes','pendientes');
+        $rsm->addScalarResult('finalizadas','finalizadas');
+        
+        $empleados = $em->createNativeQuery($sql, $rsm)
+                    ->setParameter(1, $usuario->getIdDependenciaEstablecimiento()->getId())
+                    ->getResult();
+        
         $form   = $this->createCreateForm($entity, $id);
 
         return array(

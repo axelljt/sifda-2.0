@@ -105,7 +105,9 @@ class SifdaSolicitudServicioController extends Controller
                                                                                        array(
                                                                                 'fechaRecepcion' =>  'DESC',
                                                                                 'fechaRequiere' => 'ASC'           
-                                                                               ));
+                                                                                     
+                                                                                           
+                                                                                           ));
 
         $estado=1;
 //        $em = $this->getDoctrine()->getManager();
@@ -140,7 +142,7 @@ class SifdaSolicitudServicioController extends Controller
      */
     public function gestionSolicitudesAction()
     {
-        $id_usuario=1;
+        $id_usuario=$this->getUser()->getId();
         $em = $this->getDoctrine()->getManager();
         
         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
@@ -308,7 +310,41 @@ class SifdaSolicitudServicioController extends Controller
         
     }
     
+     /**
+     * Metodo Nuevo que Enlaza la Pantalla de Solicitudes Consolidadas
+     *
+     * @Route("/solicitudes/consolidadas", name="sifda_solicitudes_consolidadas")
+     * @Method("GET")Lista todas las solicitudes de Servicio.
+     * @Template()
+     */
     
+    
+    public function solicitudesConsolNewAction()
+    {
+        $id_usuario=$this->getUser()->getId();
+        $em = $this->getDoctrine()->getManager();
+        
+         $usuario=$em->getRepository('MinsalsifdaBundle:FosUserUser')->find($id_usuario);
+//         $tiposervicio= $em->getRepository('MinsalsifdaBundle:SifdaTipoServicio')->findBy(array('idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()));
+         
+//        $objEstado2 = $em->getRepository('MinsalsifdaBundle:CatalogoDetalle')->find(3);
+//        $rechazados = $em->getRepository('MinsalsifdaBundle:SifdaSolicitudServicio')->findBy(['idEstado' => $objEstado2,'idDependenciaEstablecimiento'=>$usuario->getIdDependenciaEstablecimiento()
+//                                                                                    ],
+//                                                                                    array('fechaRecepcion' => 'DESC')
+//                                                                                );
+                
+        return array(
+//            'entities' => $rechazados,
+            'usuario'=>$usuario,
+//            'establecimiento'=>$tiposervicio,
+        );
+        
+        
+        
+//        return $this->render('MinsalsifdaBundle:SifdaSolicitudServicio:solicitudesConsolNew.html.twig');
+    }
+    
+     
     /**
     * Ajax utilizado para buscar rango de fechas
     *  

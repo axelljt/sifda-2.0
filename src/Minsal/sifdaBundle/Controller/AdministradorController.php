@@ -331,7 +331,7 @@ class AdministradorController extends Controller
      */
     public function tecnicoAction()
     {
-        $idusuario=4;
+        $idusuario=  9;
         $rsm = new ResultSetMapping();
         $em = $this->getDoctrine()->getManager();
         $usuario= $em->getRepository('MinsalsifdaBundle:FosUserUser')->find($idusuario);

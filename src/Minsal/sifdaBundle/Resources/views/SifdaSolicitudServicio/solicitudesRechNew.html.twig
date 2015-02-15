@@ -27,9 +27,9 @@
                                 <td><input type="radio" name="consulta" id="especifico" value="especifico" >Especifico</td>
                                 <td></td><td></td><td></td><td></td>
                                 
-                                <td><input type="submit" class="btn btn-primary" id="btnr3" value="PDF " name="GenerarPDF " onclick="window.open('/reports/solicitudes_Rechazadas.php?fi='+mostrarfi()+'&ff='+mostrarff()+'&tp='+mostrartipo()+'&user='+mostraruserid())"></td>
-                                <td><input type="submit" class="btn btn-primary" id="btnr1" value="PDF " name="GenerarPDF " onclick="window.open('/reports/solicitudes_Finalizadas.php?fi='+mostrarfi()+'&ff='+mostrarff()+'&tp='+mostrartipo()+'&user='+mostraruserid())"></td>
-                                <td><input type="submit" class="btn btn-primary" id="btnr2" value="Excel " name="GenerarExcel "></td>
+                                <td><input type="submit" class="btn btn-primary" id="btnr3" value="PDF" name="GenerarPDF" onclick="window.open('/reports/solicitudes_Rechazadas.php?fi='+mostrarfi()+'&ff='+mostrarff()+'&tp='+mostrartipo()+'&user='+mostraruserid())"></td>
+                                <td><input type="submit" class="btn btn-primary" id="btnr2" value="Excel" name="GenerarExcel" onclick="window.open('/reports/phpexcel/solicitudesRechazadasExcel.php?fi='+mostrarfi()+'&ff='+mostrarff()+'&tp='+mostrartipo()+'&user='+mostraruserid())"></td>
+                                
                             </tr>
                             <tr><td></td></tr>
                             <tr><td></td></tr>
@@ -271,7 +271,7 @@
            
        }); 
        
-       //Funciones para reporteria
+//Funciones para reporteria
       function mostrarfi(){ 
             return $("#fechaInicio").val();
       }
@@ -286,6 +286,10 @@
       
       function mostraruserid(){ 
             return "{{usuario.id}}";
+      }
+      
+      function mostraruseridDepEst(){ 
+            return "{{usuario.idDependenciaEstablecimiento.id}}";
       }
         
     </script>

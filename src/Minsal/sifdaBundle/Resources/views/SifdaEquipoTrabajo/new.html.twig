@@ -13,11 +13,11 @@
                     <tbody>
                         <tr>
                             <th>Establecimiento</th>
-                            <td>{{ orden.idDependenciaEstablecimiento.idEstablecimiento.nombre }}</td>
+                            <td>{{ orden.idSolicitudServicio.user.idDependenciaEstablecimiento.idEstablecimiento.nombre }}</td>
                         </tr>
                         <tr>
                             <th>Dependencia</th>
-                            <td>{{ orden.idDependenciaEstablecimiento.idDependencia.nombre }}</td>
+                            <td>{{ orden.idSolicitudServicio.user.idDependenciaEstablecimiento.idDependencia.nombre }}</td>
                         </tr>
                         <tr>
                             <th>Tipo de servicio</th>
@@ -47,29 +47,31 @@
                         <thead>
                             <tr>
                                 <th>Empleado</th>
-                                <th>Actividades pendientes asignadas</th>
+                                <th>Asignadas</th>
+                                <th>Pendientes</th>
+                                <th>Atendidas</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for entity in empleados %}
                                 <tr>
-                                    <td>{{ entity.nombre }} {{ entity.apellido }}</td>
-                                    <td>{{ entity.id }}</td>
-                                    
+                                    <td>{{ entity.nombre }}</td>
+                                    <td>{{ entity.atendidas }}</td>
+                                    <td>{{ entity.pendientes }}</td>
+                                    <td>{{ entity.finalizadas }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>                        
-                <br>
-                      
+            <br><br>
             <div class="row-fluid">
                 <div class="span4 offset2">
                     {{form_row(form.idEmpleado)}}
                 </div>
                 <div class="span5 offset1"> 
-                    {{form_row(form.equipoTrabajo)}}
+                    {{form_row(form.equipoTrabajo, {'attr': {'class':'checkbox'} })}}
                 </div>
             </div> 
     

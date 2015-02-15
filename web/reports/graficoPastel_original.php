@@ -8,21 +8,21 @@ require("ez_sql_postgresql.php");
 
 //$data = array(40,60,21,33);
 
-$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda12022015', 'localhost');
+$conexion = new ezSQL_postgresql('sifda', 'sifda', 'sifda10022015', 'localhost');
 $temp_fi = $_REQUEST['fi'];
 $temp_ff = $_REQUEST['ff'];
-$temp_tdest = $_REQUEST['tdest'];
+
 if ($temp_ff ==0 and $temp_fi ==0)
-    {$ing = $conexion->get_results("SELECT count(id) as cing FROM public.sifda_solicitud_servicio where id_estado = 1 and id_dependencia_establecimiento = $temp_tdest");
-     $asig = $conexion->get_results("SELECT count(id) as casig FROM public.sifda_solicitud_servicio where id_estado = 2 and id_dependencia_establecimiento = $temp_tdest");
-     $recha = $conexion->get_results("SELECT count(id) as crecha FROM public.sifda_solicitud_servicio where id_estado = 3 and id_dependencia_establecimiento = $temp_tdest");
-     $fin = $conexion->get_results("SELECT count(id) as cfin FROM public.sifda_solicitud_servicio where id_estado = 4 and id_dependencia_establecimiento = $temp_tdest");
+    {$ing = $conexion->get_results("SELECT count(id) as cing FROM public.sifda_solicitud_servicio where id_estado = 1");
+     $asig = $conexion->get_results("SELECT count(id) as casig FROM public.sifda_solicitud_servicio where id_estado = 2");
+     $recha = $conexion->get_results("SELECT count(id) as crecha FROM public.sifda_solicitud_servicio where id_estado = 3");
+     $fin = $conexion->get_results("SELECT count(id) as cfin FROM public.sifda_solicitud_servicio where id_estado = 4");
     }
 else
-    {$ing = $conexion->get_results("SELECT count(id) as cing FROM public.sifda_solicitud_servicio where id_estado = 1 and fecha_recepcion between '$temp_fi' and '$temp_ff' and id_dependencia_establecimiento = $temp_tdest");
-     $asig = $conexion->get_results("SELECT count(id) as casig FROM public.sifda_solicitud_servicio where id_estado = 2 and fecha_recepcion between '$temp_fi' and '$temp_ff' and id_dependencia_establecimiento = $temp_tdest");
-     $recha = $conexion->get_results("SELECT count(id) as crecha FROM public.sifda_solicitud_servicio where id_estado = 3 and fecha_recepcion between '$temp_fi' and '$temp_ff' and id_dependencia_establecimiento = $temp_tdest");
-     $fin = $conexion->get_results("SELECT count(id) as cfin FROM public.sifda_solicitud_servicio where id_estado = 4 and fecha_recepcion between '$temp_fi' and '$temp_ff' and id_dependencia_establecimiento = $temp_tdest");
+    {$ing = $conexion->get_results("SELECT count(id) as cing FROM public.sifda_solicitud_servicio where id_estado = 1 and fecha_recepcion between '$temp_fi' and '$temp_ff'");
+     $asig = $conexion->get_results("SELECT count(id) as casig FROM public.sifda_solicitud_servicio where id_estado = 2 and fecha_recepcion between '$temp_fi' and '$temp_ff'");
+     $recha = $conexion->get_results("SELECT count(id) as crecha FROM public.sifda_solicitud_servicio where id_estado = 3 and fecha_recepcion between '$temp_fi' and '$temp_ff'");
+     $fin = $conexion->get_results("SELECT count(id) as cfin FROM public.sifda_solicitud_servicio where id_estado = 4 and fecha_recepcion between '$temp_fi' and '$temp_ff'");
     }
 
 //$ing = $conexion->get_results("SELECT count(id) as cing FROM public.sifda_solicitud_servicio where id_estado = 1");
@@ -62,7 +62,7 @@ $data = array($value1->cing,$value2->casig,$value3->crecha,$value4->cfin);
 
 //$data = array($value1->cuenta,$value2->cuenta,$value3->cuenta,$value4->cuenta);
 //$data = array($ing,$asig,$recha,$fin);
-$graph = new PieGraph(700,500,'auto');
+$graph = new PieGraph(400,400,'auto');
 
 //$graph->img->SetAntiAliasing();
 
@@ -72,7 +72,7 @@ $graph->SetMarginColor('white');
 
 // Setup margin and titles
 
-$graph->title->Set('Estados de solicitudes segun dependencia');
+$graph->title->Set('Ejemplo: Solicitudes procesadas por dependencia');
 
 $p1 = new PiePlot3D($data);
 

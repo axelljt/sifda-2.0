@@ -62,6 +62,10 @@ class SifdaReprogramacionServicioController extends Controller
             $em = $this->getDoctrine()->getManager();
             $em->persist($entity);
             $em->flush();
+            
+            $idSolicitudServicio->setFechaRequiere($entity->getFechaReprogramacion());
+            $em->merge($idSolicitudServicio);
+            $em->flush();
 
             return $this->redirect($this->generateUrl('sifda_gestionSolicitudes'));
         }

@@ -1,7 +1,9 @@
 {% extends 'MinsalsifdaBundle::layoutTecnico.html.twig' %}
 
 {% block contenido_in -%}
-    <center><h3>Mostrar Ordenes Ingresadas</h3></center>
+    <div class="page-header">
+        <center><h3>Mostrar &oacute;rdenes de trabajo asignadas</h3></center>
+    </div>
     <div id="seleccion">
         <div class="row-fluid">
             <div class="span11 offset1">
@@ -32,41 +34,40 @@
     <table id="tabla" class="table table-bordered table-hover table-condensed">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Descripcion</th>
-                <th>Codigo</th>
-                <th>Fechacreacion</th>
-                <th>Fechafinalizacion</th>
-                <th>Observacion</th>
-                <th>Actions</th>
+                <th><center>No.</center></th>
+                <th><center>Descripci&oacute;n</center></th>
+                <th>C&oacute;digo</th>
+                <th>Fecha de creaci&oacute;n</th>
+                <th>Fecha de finalizaci&oacute;n</th>
+                <th><center>Observaci&oacute;n</center></th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-        {% for entity in entities %}
+            {% set corr = 1 %}
+            {% for entity in entities %}
             <tr>
-                <td><a href="{{ path('sifda_ordentrabajo_show', { 'id': entity.id }) }}">{{ entity.id }}</a></td>
+                <td> {{ corr }} </td>
                 <td>{{ entity.descripcion }}</td>
                 <td>{{ entity.codigo }}</td>
-                <td>{% if entity.fechaCreacion %}{{ entity.fechaCreacion|date('Y-m-d H:i:s') }}{% endif %}</td>
-                <td>{% if entity.fechaFinalizacion %}{{ entity.fechaFinalizacion|date('Y-m-d H:i:s') }}{% endif %}</td>
-                <td>{{ entity.observacion }}</td>
+                <td>{% if entity.fechacreacion %}{{ entity.fechacreacion|date('Y-m-d H:i:s') }}{% endif %}</td>
+                <td><center>{% if entity.fechafinalizacion %}{{ entity.fechafinalizacion|date('Y-m-d') }}{% endif %}</center></td>
+                <td>{% if entity.observacion %}{{ entity.observacion }}{%else%}No tiene{%endif %}</td>
                 <td>
                 <ul>
                     <li>
-                        <a href="{{ path('sifda_ordentrabajo_show', { 'id': entity.id }) }}">show</a>
+                        <a href="{{ path('sifda_ordentrabajo_show', { 'id': entity.id }) }}">Mostrar detalle</a>
                     </li>
                     <li>
-                        <a href="{{ path('sifda_ordentrabajo_edit', { 'id': entity.id }) }}">edit</a>
+                        <a href="{{ path('sifdainformeordentrabajo_new', { 'id': entity.id }) }}">Nuevo informe</a>
                     </li>
                     <li>
-                        <a href="{{ path('sifdainformeordentrabajo_new', { 'id': entity.id }) }}">nuevo Informe</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('sifdainformeordentrabajo', { 'idOrd': entity.id }) }}">listar Informes</a>
+                        <a href="{{ path('sifdainformeordentrabajo', { 'idOrd': entity.id }) }}">Listar informes</a>
                     </li>
                 </ul>
                 </td>
             </tr>
+            {% set corr = corr + 1 %}
         {% endfor %}
         </tbody>
     </table>
